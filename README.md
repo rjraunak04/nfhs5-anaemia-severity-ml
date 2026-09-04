@@ -32,7 +32,7 @@ This project is building an end-to-end research pipeline that combines:
 2. Compare interpretable baselines with tree-based multiclass models.
 3. Prioritize macro-level performance and severe-class detection.
 4. Calibrate predicted probabilities on data not used for model fitting.
-5. quantify uncertainty with PSU-aware resampling.
+5. Quantify uncertainty with PSU-aware resampling.
 6. Evaluate robustness across states and key demographic subgroups.
 7. Produce reproducible research outputs and a portfolio-quality ML codebase.
 
