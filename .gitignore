@@ -1,0 +1,7 @@
+# Python cache and build metadata
+**/__pycache__/
+*.egg-info/
+build/
+dist/
+# Project virtual environment
+/.venv/
