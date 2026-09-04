@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nfhs5-anaemia-severity-ml"
+version = "0.1.0"
+description = "Survey-aware machine learning for multiclass anaemia severity classification using NFHS-5 India."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+    { name = "Ankur Kumar Jaiswal" }
+]
+
+dependencies = [
+    "numpy>=1.26,<3",
+    "pandas>=2.2,<3",
+    "pyarrow>=16",
+    "scipy>=1.13,<2",
+    "scikit-learn>=1.5,<2",
+    "joblib>=1.4,<2",
+    "PyYAML>=6,<7",
+    "pydantic>=2.8,<3"
+]
+
+[project.optional-dependencies]
+modeling = [
+    "imbalanced-learn>=0.12,<1",
+    "optuna>=4,<5",
+    "lightgbm>=4.5,<5",
+    "xgboost>=2.1,<4",
+    "catboost>=1.2,<2",
+    "shap>=0.46,<1",
+    "statsmodels>=0.14,<1"
+]
+
+visualization = [
+    "matplotlib>=3.9,<4",
+    "seaborn>=0.13,<1",
+    "plotly>=5.24,<7"
+]
+
+notebook = [
+    "jupyterlab>=4.2,<5",
+    "ipykernel>=6.29,<8"
+]
+
+app = [
+    "streamlit>=1.38,<2"
+]
+
+dev = [
+    "pytest>=8.3,<10",
+    "pytest-cov>=5,<8",
+    "ruff>=0.6,<1",
+    "pre-commit>=3.8,<5",
+    "nbqa>=1.9,<2"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".venv",
+    ".git",
+    "runs",
+    "artifacts",
+    "checkpoints"
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["anaemia_ml"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
