@@ -1,0 +1,245 @@
+contract_version: "1.0.0"
+
+dataset:
+  name: "NFHS-5 anaemia severity research extract"
+  country: "India"
+  survey: "NFHS-5"
+  survey_period: "2019-2021"
+  population: "Women aged 15-49 years"
+  expected_rows: 724115
+  expected_columns: 40
+  strict_column_set: true
+
+expected_column_order:
+  - v002
+  - v003
+  - v005
+  - v021
+  - v022
+  - v024
+  - sdist
+  - v012
+  - v025
+  - v501
+  - v130
+  - s116
+  - v190
+  - v133
+  - v201
+  - v208
+  - v212
+  - v213
+  - v228
+  - v312
+  - v404
+  - v405
+  - v445
+  - v467b
+  - v467c
+  - v467d
+  - v467f
+  - v113
+  - v116
+  - v161
+  - v481
+  - s728a
+  - s731b
+  - s731c
+  - s731d
+  - s731e
+  - s731f
+  - s731g
+  - v456
+  - v457
+
+column_roles:
+  identifiers:
+    - v002
+    - v003
+
+  survey_weight:
+    - v005
+
+  survey_group:
+    - v021
+
+  survey_stratum:
+    - v022
+
+  geographic_evaluation:
+    - sdist
+
+  primary_geographic_predictor:
+    - v024
+
+  sociodemographic_predictors:
+    - v012
+    - v025
+    - v501
+    - v130
+    - s116
+    - v190
+    - v133
+
+  reproductive_predictors:
+    - v201
+    - v208
+    - v212
+    - v213
+    - v228
+    - v312
+    - v404
+    - v405
+
+  anthropometry_access_environment_predictors:
+    - v445
+    - v467b
+    - v467c
+    - v467d
+    - v467f
+    - v113
+    - v116
+    - v161
+    - v481
+
+  nutrition_comorbidity_predictors:
+    - s728a
+    - s731b
+    - s731c
+    - s731d
+    - s731e
+    - s731f
+    - s731g
+
+  outcome_sensitivity_only:
+    - v456
+
+  primary_target:
+    - v457
+
+never_use_as_predictors:
+  - v002
+  - v003
+  - v005
+  - v021
+  - v022
+  - sdist
+  - v456
+  - v457
+
+target:
+  raw_column: "v457"
+  model_column: "anaemia_severity"
+  task: "ordinal_multiclass_classification"
+
+  raw_to_model_mapping:
+    1: 3
+    2: 2
+    3: 1
+    4: 0
+
+  class_names:
+    0: "No anaemia"
+    1: "Mild"
+    2: "Moderate"
+    3: "Severe"
+
+  ordered_classes:
+    - 0
+    - 1
+    - 2
+    - 3
+
+outcome_sensitivity:
+  haemoglobin_column: "v456"
+  predictor_allowed: false
+  primary_target_allowed: false
+  purpose: "Outcome audit and prespecified sensitivity analysis only"
+
+survey_design:
+  weight_column: "v005"
+  weight_divisor: 1000000
+  psu_column: "v021"
+  stratum_column: "v022"
+  state_column: "v024"
+  district_column: "sdist"
+
+  composite_psu_components:
+    - v024
+    - v021
+
+  composite_stratum_components:
+    - v024
+    - v022
+
+respondent_key:
+  columns:
+    - v024
+    - v021
+    - v002
+    - v003
+  duplicates_allowed: false
+
+basic_validation:
+  age:
+    column: "v012"
+    minimum: 15
+    maximum: 49
+
+  residence:
+    column: "v025"
+    allowed_raw_values:
+      - 1
+      - 2
+
+  wealth_index:
+    column: "v190"
+    allowed_raw_values:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+
+  survey_weight:
+    column: "v005"
+    must_be_positive: true
+
+  target:
+    column: "v457"
+    allowed_raw_values:
+      - 1
+      - 2
+      - 3
+      - 4
+
+reference_profile:
+  rows: 724115
+  columns: 40
+  states_and_union_territories: 36
+  districts: 707
+  composite_psus: 30580
+  composite_strata: 2710
+
+missing_value_policy:
+  decode_using_official_value_labels: true
+  prohibit_global_numeric_missing_recoding: true
+  preserve_structural_missingness: true
+  predictor_imputation_inside_training_folds_only: true
+
+leakage_policy:
+  outcome_derived_predictors_allowed: false
+  preprocessing_before_data_split_allowed: false
+  full_dataset_oversampling_allowed: false
+  test_set_feature_selection_allowed: false
+  test_set_model_selection_allowed: false
+  test_set_calibration_allowed: false
+
+geographic_models:
+  india_policy_model:
+    include_state_as_predictor: true
+    include_district_as_predictor: false
+
+  transportability_model:
+    include_state_as_predictor: false
+    include_district_as_predictor: false
