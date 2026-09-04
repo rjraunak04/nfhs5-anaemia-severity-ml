@@ -1,2 +1,237 @@
-# nfhs5-anaemia-severity-ml
-Survey-aware machine learning for multiclass anaemia severity classification among women aged 15–49 using NFHS-5 India.
+# NFHS-5 Anaemia Severity ML
+
+![Project status](https://img.shields.io/badge/status-active%20development-2563eb)
+![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
+![Study](https://img.shields.io/badge/study-NFHS--5%20India-7c3aed)
+
+Survey-aware, leakage-resistant machine learning for four-class anaemia severity classification among women aged 15–49 using India’s National Family Health Survey (NFHS-5).
+
+> **Project status:** Active research and engineering development. Final model performance is intentionally not reported until the protocol-defined locked-test evaluation is complete.
+
+## Project overview
+
+Anaemia is a major public-health concern in India, but identifying women at risk of severe disease from large household surveys is methodologically challenging. The data are imbalanced, observations are clustered by survey design, several variables are not valid predictors, and conventional random splitting can produce optimistic results.
+
+This project is building an end-to-end research pipeline that combines:
+
+- a theory-driven 40-variable NFHS-5 data contract;
+- survey weights, primary sampling units (PSUs), strata, states, and districts;
+- PSU-disjoint development, calibration, and final-test partitions;
+- fold-local preprocessing and imbalance handling;
+- calibrated multiclass and ordinal models;
+- cluster-bootstrap uncertainty, explainability, and subgroup evaluation;
+- reproducible checkpoints for long-running Google Colab experiments.
+
+## Research question
+
+> How accurately and reliably can anaemia severity among Indian women aged 15–49 be classified from non-haemoglobin NFHS-5 predictors while respecting the complex survey design and preventing target leakage?
+
+### Study objectives
+
+1. Estimate survey-weighted anaemia prevalence and subgroup patterns.
+2. Compare interpretable baselines with tree-based multiclass models.
+3. Prioritize macro-level performance and severe-class detection.
+4. Calibrate predicted probabilities on data not used for model fitting.
+5. Quantify uncertainty with PSU-aware resampling.
+6. Evaluate robustness across states and key demographic subgroups.
+7. Produce reproducible research outputs and a portfolio-quality ML codebase.
+
+## Dataset
+
+| Item | Protocol specification |
+|---|---|
+| Survey | NFHS-5 India, 2019–2021 |
+| Study population | Women aged 15–49 |
+| Expected analytic records | 724,115 |
+| Selected raw variables | 40 |
+| Geographic coverage | 36 States/UTs and 707 districts |
+| Survey structure | Weights, PSUs, strata, state and district identifiers |
+| Primary outcome | Four-class anaemia severity from `v457` |
+| Sensitivity field | Adjusted haemoglobin `v456` (never used as a predictor) |
+
+The machine-readable schema is defined in [`configs/data_contract.yaml`](configs/data_contract.yaml). Variable roles and restricted-data handling are documented in [`data/README.md`](data/README.md).
+
+### Outcome coding
+
+| NFHS `v457` code | Anaemia category | Model label |
+|---:|---|---:|
+| 4 | None | 0 |
+| 3 | Mild | 1 |
+| 2 | Moderate | 2 |
+| 1 | Severe | 3 |
+
+`v456`, `v457`, identifiers, survey-weight variables, and evaluation-only geography are excluded from leakage-safe predictor sets as appropriate.
+
+### Predictor domains
+
+- **Socio-demographic:** age, residence, marital status, religion, caste, wealth and education.
+- **Reproductive health:** parity, recent births, age at first birth, pregnancy, pregnancy termination, contraception, breastfeeding and amenorrhoea.
+- **Anthropometry and access:** BMI, healthcare barriers, water, sanitation, cooking fuel and health insurance.
+- **Nutrition and comorbidity:** diabetes and selected food-frequency variables.
+
+Two analysis variants are planned:
+
+- **India policy model:** may use state-level context.
+- **Transportable risk model:** excludes state and district as predictors and uses them only for evaluation.
+
+## Protocol-specified workflow
+
+```mermaid
+flowchart TD
+    A[Restricted NFHS-5 extract] --> B[Contract and quality validation]
+    B --> C[Survey-aware cohort and features]
+    C --> D[PSU-disjoint development, calibration and test sets]
+    D --> E[Nested grouped CV and model selection]
+    E --> F[Probability calibration and frozen model]
+    F --> G[Locked test, cluster bootstrap and subgroup analysis]
+    G --> H[SHAP, reports and manuscript outputs]
+```
+
+Key safeguards:
+
+- 70/10/20 development, calibration, and test allocation with no PSU overlap.
+- Nested grouped cross-validation inside the development partition.
+- Imputation, encoding, scaling, and resampling fitted inside each training fold.
+- Final test data used once after model selection and calibration are frozen.
+- 500-replicate PSU-within-strata bootstrap for 95% confidence intervals.
+- Held-out SHAP analysis and state/subgroup robustness checks.
+- Dataset/configuration fingerprints and resumable stage checkpoints.
+
+The full analysis plan is maintained in [`docs/research_protocol.md`](docs/research_protocol.md).
+
+## Models and evaluation
+
+### Planned model families
+
+- Dummy and survey-aware descriptive baselines
+- Multinomial logistic regression
+- Ordinal logistic regression
+- Random forest
+- LightGBM
+- XGBoost
+- CatBoost
+- Limited calibrated ensemble selected without test-set feedback
+
+Class imbalance strategies will be compared rather than stacked blindly: no balancing, class weighting, fold-local SMOTENC, and balanced ensembles.
+
+### Primary metrics
+
+- Macro-F1
+- Severe-class recall
+- Severe-class precision–recall AUC
+- Balanced accuracy
+
+### Secondary metrics
+
+- Macro AUROC and weighted-F1
+- Multiclass Brier score, log loss, and expected calibration error
+- Quadratic-weighted kappa and ordinal mean absolute error
+- Stakeholder-defined cost sensitivity
+- Subgroup and geographic performance gaps
+
+## Engineering and reproducibility
+
+| Environment | Responsibility |
+|---|---|
+| Local VS Code | Package development, unit tests, linting and Git workflow |
+| Google Colab | Large-data EDA, model training, SHAP and bootstrap jobs |
+| Google Drive | Restricted input data and resumable experiment checkpoints |
+| GitHub | Versioned source code, documentation, reviews and CI |
+
+Long-running stages will write hash-validated checkpoints. A restarted Colab runtime may reuse only artifacts produced by the same dataset, feature schema, configuration, split, and pipeline version.
+
+### Repository map
+
+```text
+configs/                    Machine-readable experiment and data contracts
+data/README.md              Restricted-data policy and local placement rules
+docs/research_protocol.md   Statistical and modelling protocol
+src/anaemia_ml/             Reusable Python package
+tests/                      Unit, schema and leakage tests
+notebooks/                  Auditable research notebooks
+reports/                    Generated tables and figures (not raw data)
+pyproject.toml              Dependencies and development-tool configuration
+```
+
+## Local setup
+
+Python 3.12 is required.
+
+```powershell
+git clone https://github.com/rjraunak04/nfhs5-anaemia-severity-ml.git
+cd nfhs5-anaemia-severity-ml
+
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+For the complete research stack:
+
+```powershell
+python -m pip install -e ".[modeling,visualization,notebook,dev]"
+```
+
+Before starting feature work, create a branch from an updated `main` branch:
+
+```powershell
+git switch main
+git pull --ff-only origin main
+git switch -c feat/<short-task-name>
+```
+
+## Data access and governance
+
+NFHS/DHS participant-level data are **not included in this repository** and must not be committed, attached to issues, or published in releases. Authorized researchers should obtain access from the official data provider and keep raw and reduced extracts outside Git history.
+
+The repository may contain only:
+
+- schemas and variable dictionaries;
+- synthetic fixtures;
+- aggregate, disclosure-checked outputs;
+- code, configuration, tests, and documentation.
+
+Local data, model artifacts, checkpoints, caches, credentials, and virtual environments are protected through `.gitignore`.
+
+## Current roadmap
+
+- [x] Repository and restricted-data governance
+- [x] Prespecified research protocol
+- [x] Exact 40-variable data contract
+- [x] Python package and development-tool foundation
+- [ ] Executable data-contract validation and automated tests
+- [ ] Survey-weighted exploratory analysis
+- [ ] Cohort and leakage-safe feature pipeline
+- [ ] PSU-disjoint split generation and persistence
+- [ ] Baseline and ordinal modelling
+- [ ] Nested grouped tuning and imbalance ablation
+- [ ] Probability calibration and locked-test evaluation
+- [ ] Cluster-bootstrap confidence intervals
+- [ ] SHAP, subgroup, and state-held-out analyses
+- [ ] Model card, reproducibility report, and manuscript release
+
+## Responsible use and limitations
+
+- This is a research project, not a medical device or diagnostic service.
+- Predictions must not be used to decide treatment or replace haemoglobin testing.
+- NFHS-5 is cross-sectional; predictive associations are not causal effects.
+- Internal validation does not establish prospective clinical usefulness.
+- Fairness, calibration, geographic robustness, and external validation are required before any deployment claim.
+- Numerical misclassification costs are stakeholder-defined sensitivity scenarios, not WHO-prescribed treatment rules.
+
+Reporting is being aligned with [TRIPOD+AI](https://www.bmj.com/content/385/bmj-2023-078378), [PROBAST+AI](https://www.bmj.com/content/388/bmj-2024-082505), and [DHS survey-analysis guidance](https://dhsprogram.com/data/Guide-to-DHS-Statistics/Analyzing_DHS_Data.htm).
+
+## Results and citation
+
+No final performance results, DOI, or publication claim is reported yet. This section will be updated only after the frozen pipeline completes the locked-test analysis and the outputs pass reproducibility checks.
+
+A `CITATION.cff`, release tag, model card, and paper citation will be added with the first reproducible research release.
+
+## Author
+
+**Ankur Kumar Jaiswal** · [GitHub profile](https://github.com/rjraunak04)
+
+Code licensing will be finalized before public release. NFHS/DHS data remain governed by the data provider’s access agreement.
