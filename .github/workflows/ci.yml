@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python quality checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install project and development dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run Ruff
+        run: python -m ruff check src tests
+
+      - name: Run tests with coverage
+        run: python -m pytest --cov=anaemia_ml --cov-report=term-missing
+
+      - name: Validate clean notebooks
+        run: |
+          python - <<'PY'
+          import ast
+          import json
+          from pathlib import Path
+
+          notebooks = sorted(Path("notebooks").glob("*.ipynb"))
+          assert notebooks, "No notebooks found."
+
+          for path in notebooks:
+              notebook = json.loads(path.read_text(encoding="utf-8"))
+              code_cells = [
+                  cell for cell in notebook["cells"]
+                  if cell.get("cell_type") == "code"
+              ]
+
+              dirty_cells = [
+                  index
+                  for index, cell in enumerate(notebook["cells"])
+                  if cell.get("cell_type") == "code"
+                  and (
+                      cell.get("outputs")
+                      or cell.get("execution_count") is not None
+                  )
+              ]
+              assert not dirty_cells, (
+                  f"{path} contains saved outputs/execution counts "
+                  f"in cells {dirty_cells}"
+              )
+
+              for index, cell in enumerate(code_cells):
+                  source = "".join(cell.get("source", []))
+                  ast.parse(source, filename=f"{path}:code-cell-{index}")
+
+              print(
+                  f"Validated {path}: "
+                  f"{len(notebook['cells'])} total cells, "
+                  f"{len(code_cells)} clean code cells"
+              )
+          PY
