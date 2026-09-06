@@ -5,3 +5,47 @@ build/
 dist/
 # Project virtual environment
 /.venv/
+# Test, lint and notebook caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+.vscode/
+
+# Restricted NFHS/DHS datasets
+/data/*
+!/data/README.md
+!/data/sample/
+!/data/sample/*.csv
+*.csv
+*.parquet
+*.pq
+*.sav
+*.dta
+*.sas7bdat
+
+# Generated model and experiment artifacts
+runs/
+artifacts/
+checkpoints/
+models/
+mlruns/
+*.joblib
+*.pkl
+*.pickle
+*.sqlite
+*.sqlite3
+*.db
+
+# Operating-system files
+.DS_Store
+Thumbs.db
