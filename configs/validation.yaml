@@ -32,6 +32,14 @@ preprocessing:
 final_test:
   locked_by_default: true
   unlock_environment_variable: "ANAEMIA_UNLOCK_FINAL_TEST"
+  required_gates:
+    - "feature_schema_frozen"
+    - "search_budget_frozen"
+    - "nested_cv_complete"
+    - "state_heldout_complete"
+    - "calibration_frozen"
+    - "model_frozen"
+    - "evaluation_plan_frozen"
 
 privacy:
   allow_raw_rows_in_repository: false
