@@ -1,0 +1,129 @@
+schema_version: "1.0.0"
+status: "frozen_before_model_training"
+
+source_contract:
+  path: "configs/data_contract.yaml"
+  contract_version: "1.0.0"
+
+target:
+  raw_column: "v457"
+  model_column: "anaemia_severity"
+  ordered_classes:
+    - 0
+    - 1
+    - 2
+    - 3
+
+feature_groups:
+  continuous_numeric:
+    - "v012"
+    - "v133"
+    - "v212"
+    - "v445"
+
+  count_numeric:
+    - "v201"
+    - "v208"
+
+  nominal_categorical:
+    - "v024"
+    - "v501"
+    - "v130"
+    - "s116"
+    - "v312"
+    - "v113"
+    - "v116"
+    - "v161"
+
+  indicator_categorical:
+    - "v025"
+    - "v213"
+    - "v228"
+    - "v404"
+    - "v405"
+    - "v481"
+    - "s728a"
+
+  ordinal_categorical:
+    - "v190"
+    - "v467b"
+    - "v467c"
+    - "v467d"
+    - "v467f"
+    - "s731b"
+    - "s731c"
+    - "s731d"
+    - "s731e"
+    - "s731f"
+    - "s731g"
+
+non_predictor_roles:
+  identifiers:
+    - "v002"
+    - "v003"
+
+  survey_design:
+    - "v005"
+    - "v021"
+    - "v022"
+
+  geographic_evaluation_only:
+    - "sdist"
+
+  outcome_audit_only:
+    - "v456"
+
+  target_only:
+    - "v457"
+
+model_variants:
+  india_policy:
+    description: "Primary model retaining state as a prespecified predictor."
+    excluded_features: []
+    expected_predictor_count: 32
+
+  transportable:
+    description: "Sensitivity model excluding state and district information."
+    excluded_features:
+      - "v024"
+    expected_predictor_count: 31
+
+preprocessing_contract:
+  fit_scope: "training_fold_only"
+
+  numeric:
+    imputation: "median"
+    add_missing_indicator: true
+    scaling: "model_dependent"
+
+  categorical:
+    imputation: "explicit_missing_category"
+    unknown_category_policy: "handle_without_failure"
+    linear_model_encoding: "one_hot"
+    tree_model_encoding: "model_appropriate"
+    verify_ordinal_order_from_official_labels: true
+
+  engineered_features:
+    primary_analysis: []
+    post_hoc_features_allowed: false
+
+leakage_guards:
+  forbidden_predictors:
+    - "v002"
+    - "v003"
+    - "v005"
+    - "v021"
+    - "v022"
+    - "sdist"
+    - "v456"
+    - "v457"
+
+  outcome_derived_features_allowed: false
+  preprocessing_before_split_allowed: false
+  feature_selection_outside_training_fold_allowed: false
+  test_informed_feature_changes_allowed: false
+
+change_control:
+  version_increment_required: true
+  documented_reason_required: true
+  update_after_final_test_allowed: false
