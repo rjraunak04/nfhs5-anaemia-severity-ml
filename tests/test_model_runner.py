@@ -65,11 +65,51 @@ def feature_schema() -> dict:
 @pytest.fixture
 def validation_config() -> dict:
     return {
+        "validation_version": "1.0.0",
         "random_seed": 42,
+        "grouping": {
+            "strategy": "composite_psu",
+            "columns": ["v024", "v021"],
+        },
+        "partitions": {
+            "development": 0.70,
+            "calibration": 0.10,
+            "locked_test": 0.20,
+        },
+        "nested_cv": {
+            "splitter": "StratifiedGroupKFold",
+            "outer_folds": 5,
+            "inner_folds": 3,
+            "shuffle": True,
+            "scope": "development_only",
+        },
+        "model_selection": {
+            "primary_metric": "macro_f1",
+            "optuna_trials_per_outer_fold": 10,
+            "calibration_during_nested_cv": False,
+        },
         "preprocessing": {
             "fit_inside_training_fold_only": True,
             "primary_imbalance_strategy": "class_weight",
             "smotenc_sensitivity_ratio": 0.45,
+        },
+        "final_test": {
+            "locked_by_default": True,
+            "unlock_environment_variable": "ANAEMIA_UNLOCK_FINAL_TEST",
+            "required_gates": [
+                "feature_schema_frozen",
+                "search_budget_frozen",
+                "nested_cv_complete",
+                "state_heldout_complete",
+                "calibration_frozen",
+                "model_frozen",
+                "evaluation_plan_frozen",
+            ],
+        },
+        "privacy": {
+            "allow_raw_rows_in_repository": False,
+            "allow_real_psu_ids_in_repository": False,
+            "allow_split_indices_in_repository": False,
         },
     }
 
