@@ -6,6 +6,7 @@ import json
 from dataclasses import replace
 
 import pytest
+
 from anaemia_ml.modeling.checkpoints import (
     CheckpointError,
     CheckpointIdentityError,

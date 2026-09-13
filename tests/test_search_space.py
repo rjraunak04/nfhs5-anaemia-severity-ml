@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from anaemia_ml.modeling.search_space import (
     SearchSpaceError,
     load_search_space,
