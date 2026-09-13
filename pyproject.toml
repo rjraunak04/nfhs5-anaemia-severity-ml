@@ -54,7 +54,8 @@ dev = [
     "pytest-cov>=5,<8",
     "ruff>=0.6,<1",
     "pre-commit>=3.8,<5",
-    "nbqa>=1.9,<2"
+    "nbqa>=1.9,<2",
+    "optuna>=4,<5"
 ]
 
 [tool.setuptools.packages.find]
