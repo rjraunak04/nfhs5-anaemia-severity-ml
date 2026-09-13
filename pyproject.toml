@@ -23,6 +23,9 @@ dependencies = [
     "pydantic>=2.8,<3"
 ]
 
+[project.scripts]
+anaemia-train = "anaemia_ml.training:main"
+
 [project.optional-dependencies]
 modeling = [
     "imbalanced-learn>=0.12,<1",
@@ -55,7 +58,8 @@ dev = [
     "ruff>=0.6,<1",
     "pre-commit>=3.8,<5",
     "nbqa>=1.9,<2",
-    "optuna>=4,<5"
+    "optuna>=4,<5",
+    "lightgbm>=4.5,<5"
 ]
 
 [tool.setuptools.packages.find]

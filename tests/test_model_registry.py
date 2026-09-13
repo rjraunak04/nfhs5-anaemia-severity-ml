@@ -53,6 +53,16 @@ def test_random_forest_uses_execution_controls() -> None:
     assert estimator.class_weight is None
 
 
+def test_lightgbm_subsampling_is_enabled() -> None:
+    pytest.importorskip("lightgbm")
+
+    estimator = build_estimator("lightgbm", random_seed=31, n_jobs=1)
+
+    assert estimator.random_state == 31
+    assert estimator.n_jobs == 1
+    assert estimator.subsample_freq == 1
+
+
 def test_safe_estimator_parameters_can_be_overridden() -> None:
     estimator = build_estimator(
         "random_forest",

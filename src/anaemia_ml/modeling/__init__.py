@@ -1,5 +1,18 @@
 """Model construction, registry, and leakage-safe runner utilities."""
 
+from anaemia_ml.modeling.artifacts import (
+    ARTIFACT_VERSION,
+    MANIFEST_FILENAME,
+    ArtifactError,
+    ArtifactIdentityError,
+    LoadedModelArtifact,
+    ModelArtifactManifest,
+    UntrustedArtifactError,
+    load_model_artifact,
+    load_model_manifest,
+    save_model_artifact,
+    write_json_artifact,
+)
 from anaemia_ml.modeling.checkpoints import (
     CHECKPOINT_VERSION,
     CheckpointError,
@@ -65,9 +78,13 @@ from anaemia_ml.modeling.tuning import (
 )
 
 __all__ = [
+    "ARTIFACT_VERSION",
     "CHECKPOINT_VERSION",
     "DEFAULT_CLASSES",
     "DEFAULT_MODEL_NAMES",
+    "MANIFEST_FILENAME",
+    "ArtifactError",
+    "ArtifactIdentityError",
     "CandidateScore",
     "CheckpointError",
     "CheckpointIdentityError",
@@ -76,7 +93,9 @@ __all__ = [
     "FoldSafeClassWeightClassifier",
     "ImbalanceError",
     "ImbalanceSettings",
+    "LoadedModelArtifact",
     "MetricAggregate",
+    "ModelArtifactManifest",
     "ModelDependencyError",
     "ModelRegistryError",
     "ModelRun",
@@ -90,6 +109,7 @@ __all__ = [
     "SearchSpaceError",
     "TuningError",
     "TuningResult",
+    "UntrustedArtifactError",
     "balanced_class_weights",
     "balanced_sample_weights",
     "build_estimator",
@@ -102,11 +122,14 @@ __all__ = [
     "fit_evaluate_model",
     "imbalance_settings",
     "load_checkpoint",
+    "load_model_artifact",
+    "load_model_manifest",
     "load_search_space",
     "make_smotenc_spec",
     "model_spec",
     "registered_models",
     "run_grouped_nested_cv",
+    "save_model_artifact",
     "save_outer_fold_checkpoint",
     "search_space_fingerprint",
     "smotenc_categorical_indices",
@@ -114,4 +137,5 @@ __all__ = [
     "suggest_parameters",
     "tune_parameters",
     "validate_search_space",
+    "write_json_artifact",
 ]
