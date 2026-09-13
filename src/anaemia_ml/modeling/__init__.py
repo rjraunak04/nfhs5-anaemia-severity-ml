@@ -14,6 +14,15 @@ from anaemia_ml.modeling.imbalance import (
     smotenc_categorical_indices,
     smotenc_sampling_targets,
 )
+from anaemia_ml.modeling.nested_cv import (
+    CandidateScore,
+    MetricAggregate,
+    NestedCVError,
+    NestedCVReport,
+    OuterFoldResult,
+    default_parameter_candidates,
+    run_grouped_nested_cv,
+)
 from anaemia_ml.modeling.registry import (
     ModelDependencyError,
     ModelRegistryError,
@@ -31,6 +40,7 @@ from anaemia_ml.modeling.runner import (
 )
 
 __all__ = [
+    "CandidateScore",
     "DEFAULT_CLASSES",
     "DEFAULT_MODEL_NAMES",
     "FoldSafeClassWeightClassifier",
@@ -40,6 +50,10 @@ __all__ = [
     "ModelRegistryError",
     "ModelRun",
     "ModelSpec",
+    "MetricAggregate",
+    "NestedCVError",
+    "NestedCVReport",
+    "OuterFoldResult",
     "RunnerError",
     "SMOTENCSpec",
     "balanced_class_weights",
@@ -47,11 +61,13 @@ __all__ = [
     "build_estimator",
     "build_primary_imbalance_classifier",
     "compare_models",
+    "default_parameter_candidates",
     "fit_evaluate_model",
     "imbalance_settings",
     "make_smotenc_spec",
     "model_spec",
     "registered_models",
+    "run_grouped_nested_cv",
     "smotenc_categorical_indices",
     "smotenc_sampling_targets",
 ]
