@@ -71,10 +71,7 @@ def _validated_classes(
     if not raw:
         raise MetricError(f"{name} must not be empty.")
 
-    if any(
-        isinstance(value, (bool, np.bool_)) or not isinstance(value, Integral)
-        for value in raw
-    ):
+    if any(isinstance(value, (bool, np.bool_)) or not isinstance(value, Integral) for value in raw):
         raise MetricError(f"{name} must contain integers only.")
 
     classes = tuple(int(value) for value in raw)
@@ -249,9 +246,7 @@ def multiclass_brier_score(
         sample_count=true_labels.size,
     )
 
-    one_hot = (
-        true_labels[:, np.newaxis] == np.asarray(expected)[np.newaxis, :]
-    ).astype(float)
+    one_hot = (true_labels[:, np.newaxis] == np.asarray(expected)[np.newaxis, :]).astype(float)
     row_scores = np.square(probabilities - one_hot).sum(axis=1)
 
     return float(np.average(row_scores, weights=weights))
@@ -283,9 +278,7 @@ def expected_calibration_error(
         sample_weight,
         sample_count=true_labels.size,
     )
-    effective_weights = (
-        np.ones(true_labels.size, dtype=float) if weights is None else weights
-    )
+    effective_weights = np.ones(true_labels.size, dtype=float) if weights is None else weights
 
     predicted_positions = np.argmax(probabilities, axis=1)
     predicted_labels = np.asarray(expected)[predicted_positions]
@@ -314,9 +307,7 @@ def expected_calibration_error(
 
         bin_accuracy = float(np.average(correctness[selected], weights=bin_weights))
         bin_confidence = float(np.average(confidence[selected], weights=bin_weights))
-        calibration_error += (
-            bin_weight / total_weight * abs(bin_accuracy - bin_confidence)
-        )
+        calibration_error += bin_weight / total_weight * abs(bin_accuracy - bin_confidence)
 
     return float(calibration_error)
 
@@ -423,9 +414,7 @@ def evaluate_multiclass(
 
     if weights is not None:
         zero_weight_classes = [
-            label
-            for label in expected
-            if float(weights[true_labels == label].sum()) <= 0
+            label for label in expected if float(weights[true_labels == label].sum()) <= 0
         ]
         if zero_weight_classes:
             raise MetricError(
