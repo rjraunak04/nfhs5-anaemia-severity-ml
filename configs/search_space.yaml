@@ -1,0 +1,67 @@
+search_space_version: "1.0.0"
+
+objective:
+  metric: "macro_f1"
+  direction: "maximize"
+
+sampler:
+  name: "TPESampler"
+
+models:
+  logistic_regression:
+    C:
+      type: "float"
+      low: 0.01
+      high: 100.0
+      log: true
+
+  random_forest:
+    n_estimators:
+      type: "int"
+      low: 200
+      high: 600
+      step: 100
+    max_depth:
+      type: "categorical"
+      choices:
+        - null
+        - 12
+        - 18
+        - 24
+    min_samples_leaf:
+      type: "int"
+      low: 1
+      high: 10
+    max_features:
+      type: "categorical"
+      choices:
+        - "sqrt"
+        - "log2"
+        - 0.5
+
+  lightgbm:
+    num_leaves:
+      type: "int"
+      low: 15
+      high: 127
+      step: 16
+    learning_rate:
+      type: "float"
+      low: 0.01
+      high: 0.20
+      log: true
+    min_child_samples:
+      type: "int"
+      low: 10
+      high: 100
+      step: 10
+    subsample:
+      type: "float"
+      low: 0.7
+      high: 1.0
+      step: 0.1
+    colsample_bytree:
+      type: "float"
+      low: 0.7
+      high: 1.0
+      step: 0.1
