@@ -160,6 +160,7 @@ def _base_estimator(
             num_class=4,
             n_estimators=300,
             learning_rate=0.05,
+            subsample_freq=1,
             random_state=random_seed,
             n_jobs=n_jobs,
             verbosity=-1,

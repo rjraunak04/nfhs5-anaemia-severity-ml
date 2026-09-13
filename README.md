@@ -175,6 +175,16 @@ For the complete research stack:
 python -m pip install -e ".[modeling,visualization,notebook,dev]"
 ```
 
+### One-command engineering smoke run
+
+After installing the development dependencies, verify the complete ML path with deterministic synthetic data:
+
+```powershell
+anaemia-train --smoke --output-directory runs/day1-smoke
+```
+
+This command validates the 40-column contract, builds PSU-disjoint partitions, compares Logistic Regression, Random Forest, and LightGBM with grouped nested CV, refits the development winner, and writes an integrity-checked model artifact. It does not evaluate calibration or locked-test data and does not produce a research performance claim.
+
 Before starting feature work, create a branch from an updated `main` branch:
 
 ```powershell
