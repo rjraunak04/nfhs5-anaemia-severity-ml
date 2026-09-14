@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from sklearn.linear_model import LogisticRegression
+
 from anaemia_ml.evaluation.calibration import (
     CalibrationError,
     TemperatureScaledClassifier,
     apply_temperature,
     select_temperature_scaling,
 )
-from sklearn.linear_model import LogisticRegression
 
 
 def calibration_case() -> tuple[np.ndarray, np.ndarray, np.ndarray]:

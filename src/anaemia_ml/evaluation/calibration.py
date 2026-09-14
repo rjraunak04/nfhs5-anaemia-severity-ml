@@ -80,9 +80,7 @@ def apply_temperature(
     except (TypeError, ValueError) as error:
         raise CalibrationError("probabilities must be numeric.") from error
     if values.ndim != 2 or values.shape[0] == 0 or values.shape[1] < 2:
-        raise CalibrationError(
-            "probabilities must be a non-empty two-dimensional array."
-        )
+        raise CalibrationError("probabilities must be a non-empty two-dimensional array.")
     if not np.isfinite(values).all() or (values < 0).any():
         raise CalibrationError("probabilities must be finite and non-negative.")
     row_sums = values.sum(axis=1)
@@ -115,13 +113,9 @@ def _validated_weights(values: Any, *, sample_count: int) -> np.ndarray | None:
     except (TypeError, ValueError) as error:
         raise CalibrationError("sample_weight must be numeric.") from error
     if weights.shape != (sample_count,):
-        raise CalibrationError(
-            "sample_weight must contain one value per calibration row."
-        )
+        raise CalibrationError("sample_weight must contain one value per calibration row.")
     if not np.isfinite(weights).all() or (weights < 0).any() or weights.sum() <= 0:
-        raise CalibrationError(
-            "sample_weight must be finite, non-negative, and non-zero."
-        )
+        raise CalibrationError("sample_weight must be finite, non-negative, and non-zero.")
     return weights
 
 
@@ -247,14 +241,8 @@ def select_temperature_scaling(
         sample_count=raw.shape[0],
     )
     for value in group_values.tolist():
-        missing_number = isinstance(value, (float, np.floating)) and not np.isfinite(
-            value
-        )
-        if (
-            value is None
-            or missing_number
-            or (isinstance(value, str) and not value.strip())
-        ):
+        missing_number = isinstance(value, (float, np.floating)) and not np.isfinite(value)
+        if value is None or missing_number or (isinstance(value, str) and not value.strip()):
             raise CalibrationError("groups must not contain missing or empty values.")
     weights = _validated_weights(sample_weight, sample_count=raw.shape[0])
     candidates = _validated_temperatures(temperatures)
@@ -279,9 +267,7 @@ def select_temperature_scaling(
     ):
         overlap = set(group_values[train_index]) & set(group_values[validation_index])
         if overlap:
-            raise CalibrationError(
-                "PSU groups overlap inside calibration cross-fitting."
-            )
+            raise CalibrationError("PSU groups overlap inside calibration cross-fitting.")
         fold_weights = None if weights is None else weights[train_index]
         temperature = _best_temperature(
             probabilities[train_index],
@@ -351,9 +337,7 @@ class TemperatureScaledClassifier(ClassifierMixin, BaseEstimator):
         """Mark the prediction-only wrapper as fitted for sklearn validation."""
         return hasattr(self.fitted_estimator, "predict_proba")
 
-    def fit(
-        self, X: Any, y: Any = None, **fit_params: Any
-    ) -> TemperatureScaledClassifier:
+    def fit(self, X: Any, y: Any = None, **fit_params: Any) -> TemperatureScaledClassifier:
         """Reject refitting because the wrapped development model is frozen."""
         del X, y, fit_params
         raise CalibrationError(

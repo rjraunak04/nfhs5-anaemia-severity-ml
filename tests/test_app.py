@@ -14,6 +14,5 @@ def test_streamlit_app_starts_with_truth_disclosure() -> None:
     assert app.title[0].value == "NFHS-5 Anaemia Severity ML"
     assert any("not an NFHS research result" in item.value for item in app.markdown)
     assert any(
-        metric.label == "Locked test" and metric.value == "Untouched"
-        for metric in app.metric
+        metric.label == "Locked test" and metric.value == "Untouched" for metric in app.metric
     )

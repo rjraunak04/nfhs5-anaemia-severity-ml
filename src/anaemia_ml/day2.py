@@ -154,9 +154,7 @@ def _portfolio_payload(
         "project_title": "NFHS-5 Anaemia Severity ML",
         "run_kind": run_kind,
         "result_status": (
-            "synthetic_engineering_demo"
-            if synthetic
-            else "development_calibration_only"
+            "synthetic_engineering_demo" if synthetic else "development_calibration_only"
         ),
         "disclosure": {
             "headline": (
@@ -334,8 +332,7 @@ def run_day2_workflow(
         overwrite=overwrite,
     )
     partition_rows = {
-        name: int(indices.size)
-        for name, indices in prepared.partitions.as_dict().items()
+        name: int(indices.size) for name, indices in prepared.partitions.as_dict().items()
     }
     portfolio_summary_path = write_json_artifact(
         output / PORTFOLIO_SUMMARY_FILENAME,
@@ -396,34 +393,22 @@ def _smoke_candidates(
     try:
         return {name: candidates[name] for name in model_names}
     except KeyError as error:
-        raise Day2WorkflowError(
-            f"Unsupported smoke model: {error.args[0]!r}."
-        ) from error
+        raise Day2WorkflowError(f"Unsupported smoke model: {error.args[0]!r}.") from error
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument(
-        "--data", type=Path, help="Restricted 40-column CSV or Parquet."
-    )
+    source.add_argument("--data", type=Path, help="Restricted 40-column CSV or Parquet.")
     source.add_argument(
         "--smoke",
         action="store_true",
         help="Use deterministic synthetic data; creates no research result.",
     )
-    parser.add_argument(
-        "--contract", type=Path, default=Path("configs/data_contract.yaml")
-    )
-    parser.add_argument(
-        "--features", type=Path, default=Path("configs/feature_schema.yaml")
-    )
-    parser.add_argument(
-        "--validation", type=Path, default=Path("configs/validation.yaml")
-    )
-    parser.add_argument(
-        "--search-space", type=Path, default=Path("configs/search_space.yaml")
-    )
+    parser.add_argument("--contract", type=Path, default=Path("configs/data_contract.yaml"))
+    parser.add_argument("--features", type=Path, default=Path("configs/feature_schema.yaml"))
+    parser.add_argument("--validation", type=Path, default=Path("configs/validation.yaml"))
+    parser.add_argument("--search-space", type=Path, default=Path("configs/search_space.yaml"))
     parser.add_argument("--output-directory", type=Path, default=Path("runs/day2"))
     parser.add_argument("--models", nargs="+", default=list(DEFAULT_TRAINING_MODELS))
     parser.add_argument(

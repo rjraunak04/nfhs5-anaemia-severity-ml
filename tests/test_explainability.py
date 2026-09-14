@@ -7,6 +7,8 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
+from sklearn.linear_model import LogisticRegression
+
 from anaemia_ml.data.validate import load_contract
 from anaemia_ml.evaluation.explainability import (
     ExplainabilityError,
@@ -16,7 +18,6 @@ from anaemia_ml.evaluation.explainability import (
 from anaemia_ml.features.schema import feature_columns, load_feature_schema
 from anaemia_ml.preprocessing import build_model_pipeline
 from anaemia_ml.training import make_synthetic_smoke_frame
-from sklearn.linear_model import LogisticRegression
 
 ROOT = Path(__file__).parents[1]
 CONTRACT_PATH = ROOT / "configs" / "data_contract.yaml"

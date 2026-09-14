@@ -56,9 +56,7 @@ def validate_portfolio_summary(value: Any) -> dict[str, Any]:
     document = dict(value)
     forbidden = sorted(_forbidden_keys(document))
     if forbidden:
-        raise DashboardDataError(
-            f"Dashboard JSON contains forbidden fields: {forbidden}."
-        )
+        raise DashboardDataError(f"Dashboard JSON contains forbidden fields: {forbidden}.")
     required = {
         "schema_version",
         "project_title",
@@ -79,18 +77,12 @@ def validate_portfolio_summary(value: Any) -> dict[str, Any]:
     if not isinstance(disclosure, Mapping):
         raise DashboardDataError("disclosure must be an object.")
     if disclosure.get("locked_test_evaluated") is not False:
-        raise DashboardDataError(
-            "Recruiter dashboard must not claim locked-test evaluation."
-        )
+        raise DashboardDataError("Recruiter dashboard must not claim locked-test evaluation.")
     if disclosure.get("final_performance_claim_allowed") is not False:
-        raise DashboardDataError(
-            "Final performance claims are not allowed before Day 3 gates."
-        )
+        raise DashboardDataError("Final performance claims are not allowed before Day 3 gates.")
     models = document["model_comparison"]
     if not isinstance(models, list) or not models:
-        raise DashboardDataError(
-            "model_comparison must contain at least one aggregate row."
-        )
+        raise DashboardDataError("model_comparison must contain at least one aggregate row.")
     for model in models:
         if not isinstance(model, Mapping):
             raise DashboardDataError("Every model comparison row must be an object.")
@@ -103,9 +95,7 @@ def validate_portfolio_summary(value: Any) -> dict[str, Any]:
     if explainability.get("scope") != "aggregate_only":
         raise DashboardDataError("Explainability scope must be aggregate_only.")
     if explainability.get("row_level_values_persisted") is not False:
-        raise DashboardDataError(
-            "Row-level explainability values must not be persisted."
-        )
+        raise DashboardDataError("Row-level explainability values must not be persisted.")
     if not isinstance(explainability.get("global_features"), list):
         raise DashboardDataError("explainability.global_features must be a list.")
     return document
@@ -121,9 +111,7 @@ def portfolio_summary_from_bytes(payload: bytes) -> dict[str, Any]:
             parse_constant=_reject_nonfinite,
         )
     except (UnicodeDecodeError, ValueError) as error:
-        raise DashboardDataError(
-            "Dashboard upload must be valid UTF-8 JSON."
-        ) from error
+        raise DashboardDataError("Dashboard upload must be valid UTF-8 JSON.") from error
     return validate_portfolio_summary(document)
 
 
@@ -133,7 +121,5 @@ def load_portfolio_summary(path: str | Path) -> dict[str, Any]:
     try:
         payload = summary_path.read_bytes()
     except OSError as error:
-        raise DashboardDataError(
-            f"Could not read dashboard summary: {summary_path}"
-        ) from error
+        raise DashboardDataError(f"Could not read dashboard summary: {summary_path}") from error
     return portfolio_summary_from_bytes(payload)

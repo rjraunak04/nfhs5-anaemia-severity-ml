@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
 from anaemia_ml.dashboard import (
     DashboardDataError,
     load_portfolio_summary,
@@ -69,9 +70,7 @@ calibration = data["calibration"]
 explainability = data["explainability"]
 
 st.title(data["project_title"])
-st.caption(
-    "Survey-aware, leakage-resistant multiclass ML for anaemia severity in NFHS-5 India"
-)
+st.caption("Survey-aware, leakage-resistant multiclass ML for anaemia severity in NFHS-5 India")
 st.markdown(
     f'<div class="truth-banner"><strong>{escape(str(disclosure["headline"]))}</strong><br>'
     f'<span class="small-note">Source: {escape(str(disclosure["data_source"]))}. '
@@ -82,9 +81,7 @@ st.markdown(
 selected = data["selection"]
 metric_columns = st.columns(4)
 metric_columns[0].metric("Compared models", len(models))
-metric_columns[1].metric(
-    "Selected model", selected["model_name"].replace("_", " ").title()
-)
+metric_columns[1].metric("Selected model", selected["model_name"].replace("_", " ").title())
 metric_columns[2].metric("Calibration", calibration["method"].replace("_", " ").title())
 metric_columns[3].metric("Locked test", "Untouched")
 
@@ -95,9 +92,7 @@ overview_tab, calibration_tab, shap_tab, safeguards_tab = st.tabs(
 with overview_tab:
     st.subheader("Development-only model comparison")
     if data["run_kind"] == "synthetic_smoke":
-        st.success(
-            "All configured model paths completed the grouped evaluation smoke test."
-        )
+        st.success("All configured model paths completed the grouped evaluation smoke test.")
         st.dataframe(
             models[["display_name", "total_model_fits"]].rename(
                 columns={"display_name": "Model", "total_model_fits": "Verified fits"}
@@ -111,9 +106,7 @@ with overview_tab:
         )
     else:
         st.caption("Mean scores come from PSU-grouped nested cross-validation.")
-        chart = models.set_index("display_name")[
-            ["macro_f1_mean", "balanced_accuracy_mean"]
-        ]
+        chart = models.set_index("display_name")[["macro_f1_mean", "balanced_accuracy_mean"]]
         st.bar_chart(chart, horizontal=True, x_label="Score", y_label="Model")
         display_columns = [
             "display_name",
@@ -135,9 +128,7 @@ with overview_tab:
             hide_index=True,
             use_container_width=True,
         )
-        st.info(
-            "These are development estimates, not locked-test results or final claims."
-        )
+        st.info("These are development estimates, not locked-test results or final claims.")
 
 with calibration_tab:
     st.subheader("Probability calibration selection")
@@ -190,9 +181,7 @@ with shap_tab:
             x_label="Mean |SHAP|",
             y_label="Raw predictor",
         )
-    st.warning(
-        "SHAP describes model associations, not causal effects or clinical importance."
-    )
+    st.warning("SHAP describes model associations, not causal effects or clinical importance.")
 
 with safeguards_tab:
     st.subheader("What makes this evaluation trustworthy")
@@ -215,6 +204,5 @@ with safeguards_tab:
 
 st.divider()
 st.caption(
-    f"Day 2 workflow v{workflow['version']} · run: {data['run_kind']} · "
-    "locked test: not evaluated"
+    f"Day 2 workflow v{workflow['version']} · run: {data['run_kind']} · locked test: not evaluated"
 )

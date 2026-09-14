@@ -21,11 +21,7 @@ class ExplainabilityError(ValueError):
 
 
 def _positive_integer(value: Any, *, name: str, maximum: int) -> int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, Integral)
-        or not 1 <= int(value) <= maximum
-    ):
+    if isinstance(value, bool) or not isinstance(value, Integral) or not 1 <= int(value) <= maximum:
         raise ExplainabilityError(f"{name} must be an integer in [1, {maximum}].")
     return int(value)
 
@@ -38,15 +34,11 @@ def _fitted_components(pipeline: Pipeline) -> tuple[Pipeline, Any, np.ndarray]:
         preprocessor = pipeline.named_steps["preprocessor"]
         classifier = pipeline.named_steps["model"]
     except KeyError as error:
-        raise ExplainabilityError(
-            "pipeline must contain preprocessor and model steps."
-        ) from error
+        raise ExplainabilityError("pipeline must contain preprocessor and model steps.") from error
     estimator = getattr(classifier, "estimator_", classifier)
     classes = np.asarray(getattr(estimator, "classes_", ()))
     if classes.ndim != 1 or classes.size < 2:
-        raise ExplainabilityError(
-            "The fitted estimator must expose multiclass classes_."
-        )
+        raise ExplainabilityError("The fitted estimator must expose multiclass classes_.")
     return preprocessor, estimator, classes
 
 
@@ -65,9 +57,7 @@ def transformed_to_raw_features(
         imputer = numeric_pipeline.named_steps["imputer"]
         encoder = categorical_pipeline.named_steps["encoder"]
     except (AttributeError, KeyError) as error:
-        raise ExplainabilityError(
-            "Unsupported fitted preprocessing structure."
-        ) from error
+        raise ExplainabilityError("Unsupported fitted preprocessing structure.") from error
 
     raw_names = list(groups.numeric)
     indicator = getattr(imputer, "indicator_", None)
@@ -93,13 +83,9 @@ def _normalized_shap_values(
 ) -> np.ndarray:
     if isinstance(values, list):
         try:
-            array = np.stack(
-                [np.asarray(value, dtype=float) for value in values], axis=2
-            )
+            array = np.stack([np.asarray(value, dtype=float) for value in values], axis=2)
         except (TypeError, ValueError) as error:
-            raise ExplainabilityError(
-                "SHAP returned inconsistent class arrays."
-            ) from error
+            raise ExplainabilityError("SHAP returned inconsistent class arrays.") from error
     else:
         try:
             array = np.asarray(values, dtype=float)
@@ -114,8 +100,7 @@ def _normalized_shap_values(
         normalized = np.stack([-array, array], axis=2)
     else:
         raise ExplainabilityError(
-            "Unexpected SHAP shape; expected samples x features x classes, "
-            f"received {array.shape}."
+            f"Unexpected SHAP shape; expected samples x features x classes, received {array.shape}."
         )
     if not np.isfinite(normalized).all():
         raise ExplainabilityError("SHAP values must be finite.")
@@ -203,9 +188,7 @@ def _make_explainer(estimator: Any, background: np.ndarray) -> Any:
     if hasattr(estimator, "feature_importances_"):
         return shap.TreeExplainer(estimator)
     if not hasattr(estimator, "predict_proba"):
-        raise ExplainabilityError(
-            "The fitted estimator does not support predict_proba."
-        )
+        raise ExplainabilityError("The fitted estimator does not support predict_proba.")
     return shap.Explainer(estimator.predict_proba, background)
 
 
@@ -243,18 +226,14 @@ def build_shap_report(
     )
     rng = np.random.default_rng(int(random_state))
     selected_count = min(sample_limit, len(frame))
-    selected_positions = np.sort(
-        rng.choice(len(frame), size=selected_count, replace=False)
-    )
+    selected_positions = np.sort(rng.choice(len(frame), size=selected_count, replace=False))
     selected = frame.iloc[selected_positions]
     transformed = preprocessor.transform(selected)
     if sparse.issparse(transformed):
         transformed = transformed.toarray()
     transformed = np.asarray(transformed, dtype=float)
     if transformed.shape != (selected_count, len(raw_features)):
-        raise ExplainabilityError(
-            "Transformed explanation matrix has an unexpected shape."
-        )
+        raise ExplainabilityError("Transformed explanation matrix has an unexpected shape.")
     background_count = min(background_limit, selected_count)
     background_positions = np.linspace(
         0,
