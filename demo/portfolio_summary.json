@@ -1,0 +1,760 @@
+{
+  "calibration": {
+    "accepted": true,
+    "candidate_metrics_cross_fitted": {
+      "balanced_accuracy": 0.324468085106383,
+      "expected_calibration_error": 0.23664331477362122,
+      "log_loss": 1.4374792964165275,
+      "macro_f1": 0.3296013615731634,
+      "macro_roc_auc_ovr": 0.4083798601679996,
+      "multiclass_brier": 0.7718543223839344,
+      "ordinal_mae": 0.8439716312056736,
+      "quadratic_weighted_kappa": 0.49545454545454537,
+      "severe_pr_auc": 0.6287417858264395,
+      "severe_precision": 0.6453900709219857,
+      "severe_recall": 0.6453900709219857,
+      "weighted_f1": 0.32960136157316344
+    },
+    "candidate_temperature": 3.0,
+    "cross_fit_splits": 3,
+    "deployed_metrics_estimate": {
+      "balanced_accuracy": 0.324468085106383,
+      "expected_calibration_error": 0.23664331477362122,
+      "log_loss": 1.4374792964165275,
+      "macro_f1": 0.3296013615731634,
+      "macro_roc_auc_ovr": 0.4083798601679996,
+      "multiclass_brier": 0.7718543223839344,
+      "ordinal_mae": 0.8439716312056736,
+      "quadratic_weighted_kappa": 0.49545454545454537,
+      "severe_pr_auc": 0.6287417858264395,
+      "severe_precision": 0.6453900709219857,
+      "severe_recall": 0.6453900709219857,
+      "weighted_f1": 0.32960136157316344
+    },
+    "evaluation_scope": "calibration_selection_only",
+    "group_disjoint_cross_fit": true,
+    "locked_test_evaluated": false,
+    "method": "temperature_scaling",
+    "metrics_before": {
+      "balanced_accuracy": 0.324468085106383,
+      "expected_calibration_error": 0.3123392451818755,
+      "log_loss": 1.6760763065417452,
+      "macro_f1": 0.3296013615731634,
+      "macro_roc_auc_ovr": 0.4552210653387656,
+      "multiclass_brier": 0.8631304079446851,
+      "ordinal_mae": 0.8439716312056736,
+      "quadratic_weighted_kappa": 0.49545454545454537,
+      "severe_pr_auc": 0.6287417858264395,
+      "severe_precision": 0.6453900709219857,
+      "severe_recall": 0.6453900709219857,
+      "weighted_f1": 0.32960136157316344
+    },
+    "selection_objective": "survey_weighted_log_loss",
+    "temperature": 3.0
+  },
+  "disclosure": {
+    "clinical_use_allowed": false,
+    "data_source": "Deterministic contract-shaped synthetic data",
+    "final_performance_claim_allowed": false,
+    "headline": "Synthetic engineering demonstration \u2014 not an NFHS research result",
+    "locked_test_evaluated": false
+  },
+  "explainability": {
+    "background_count": 8,
+    "class_features": [
+      {
+        "class_label": 0,
+        "features": [
+          {
+            "feature": "v208",
+            "mean_abs_shap": 0.14590794140836197,
+            "mean_signed_shap": -0.05334252256752772,
+            "rank": 1
+          },
+          {
+            "feature": "v212",
+            "mean_abs_shap": 0.12043879122439237,
+            "mean_signed_shap": -0.009036652537597015,
+            "rank": 2
+          },
+          {
+            "feature": "v012",
+            "mean_abs_shap": 0.07001810422285677,
+            "mean_signed_shap": 0.02174316671594913,
+            "rank": 3
+          },
+          {
+            "feature": "v133",
+            "mean_abs_shap": 0.06706870867799554,
+            "mean_signed_shap": -0.005365626168646979,
+            "rank": 4
+          },
+          {
+            "feature": "v213",
+            "mean_abs_shap": 0.04678228108324697,
+            "mean_signed_shap": 0.008163281097295352,
+            "rank": 5
+          },
+          {
+            "feature": "v445",
+            "mean_abs_shap": 0.04298426592091301,
+            "mean_signed_shap": 0.01944599185051529,
+            "rank": 6
+          },
+          {
+            "feature": "s731e",
+            "mean_abs_shap": 0.036825192589325824,
+            "mean_signed_shap": -0.006324758683796053,
+            "rank": 7
+          },
+          {
+            "feature": "v161",
+            "mean_abs_shap": 0.033413390778587744,
+            "mean_signed_shap": 0.0007920262099507507,
+            "rank": 8
+          },
+          {
+            "feature": "s116",
+            "mean_abs_shap": 0.032940364968529305,
+            "mean_signed_shap": -0.004197644030479988,
+            "rank": 9
+          },
+          {
+            "feature": "v025",
+            "mean_abs_shap": 0.03125911117241315,
+            "mean_signed_shap": 0.012683403245324269,
+            "rank": 10
+          },
+          {
+            "feature": "v467b",
+            "mean_abs_shap": 0.03005375490466182,
+            "mean_signed_shap": -0.0022900444752582696,
+            "rank": 11
+          },
+          {
+            "feature": "s731d",
+            "mean_abs_shap": 0.02990434290467318,
+            "mean_signed_shap": 0.003753988281634408,
+            "rank": 12
+          },
+          {
+            "feature": "v190",
+            "mean_abs_shap": 0.023930392428252782,
+            "mean_signed_shap": -0.008226426412109536,
+            "rank": 13
+          },
+          {
+            "feature": "v228",
+            "mean_abs_shap": 0.023739296835155594,
+            "mean_signed_shap": 0.0020593558241297364,
+            "rank": 14
+          },
+          {
+            "feature": "v481",
+            "mean_abs_shap": 0.023031477095992587,
+            "mean_signed_shap": 0.0026780526985929268,
+            "rank": 15
+          },
+          {
+            "feature": "v201",
+            "mean_abs_shap": 0.022648657930404076,
+            "mean_signed_shap": -0.0031022127146384582,
+            "rank": 16
+          },
+          {
+            "feature": "v312",
+            "mean_abs_shap": 0.016954680782046806,
+            "mean_signed_shap": -0.005964687114501689,
+            "rank": 17
+          },
+          {
+            "feature": "s731g",
+            "mean_abs_shap": 0.013885469253283786,
+            "mean_signed_shap": 0.002249458625787117,
+            "rank": 18
+          },
+          {
+            "feature": "s731f",
+            "mean_abs_shap": 0.011414435345078343,
+            "mean_signed_shap": 0.009419031139207524,
+            "rank": 19
+          },
+          {
+            "feature": "s728a",
+            "mean_abs_shap": 0.009651621615127544,
+            "mean_signed_shap": 0.0012674972356974,
+            "rank": 20
+          }
+        ]
+      },
+      {
+        "class_label": 1,
+        "features": [
+          {
+            "feature": "v445",
+            "mean_abs_shap": 0.29934993507719476,
+            "mean_signed_shap": 0.06286948498328569,
+            "rank": 1
+          },
+          {
+            "feature": "v012",
+            "mean_abs_shap": 0.18415443119244188,
+            "mean_signed_shap": 0.02564044543017775,
+            "rank": 2
+          },
+          {
+            "feature": "v133",
+            "mean_abs_shap": 0.090574136523903,
+            "mean_signed_shap": -0.005994000852907184,
+            "rank": 3
+          },
+          {
+            "feature": "v213",
+            "mean_abs_shap": 0.08093253999923365,
+            "mean_signed_shap": -0.020175023630174593,
+            "rank": 4
+          },
+          {
+            "feature": "v201",
+            "mean_abs_shap": 0.0601165897414323,
+            "mean_signed_shap": 0.006630527431361399,
+            "rank": 5
+          },
+          {
+            "feature": "s731e",
+            "mean_abs_shap": 0.05632095096655063,
+            "mean_signed_shap": -0.003201798891023543,
+            "rank": 6
+          },
+          {
+            "feature": "v404",
+            "mean_abs_shap": 0.045534340915270456,
+            "mean_signed_shap": 0.013029383225872227,
+            "rank": 7
+          },
+          {
+            "feature": "v228",
+            "mean_abs_shap": 0.03859370914502915,
+            "mean_signed_shap": 0.027294913953456217,
+            "rank": 8
+          },
+          {
+            "feature": "v467f",
+            "mean_abs_shap": 0.029807506588776535,
+            "mean_signed_shap": -0.029761899888584957,
+            "rank": 9
+          },
+          {
+            "feature": "v212",
+            "mean_abs_shap": 0.026300530015615536,
+            "mean_signed_shap": -0.008383527552403186,
+            "rank": 10
+          },
+          {
+            "feature": "v130",
+            "mean_abs_shap": 0.026145605062827704,
+            "mean_signed_shap": -0.010068312306711567,
+            "rank": 11
+          },
+          {
+            "feature": "v501",
+            "mean_abs_shap": 0.025894588550222405,
+            "mean_signed_shap": 0.0036735368721676023,
+            "rank": 12
+          },
+          {
+            "feature": "s731c",
+            "mean_abs_shap": 0.017521740299028362,
+            "mean_signed_shap": 0.0070062757946698735,
+            "rank": 13
+          },
+          {
+            "feature": "v161",
+            "mean_abs_shap": 0.01731091830401839,
+            "mean_signed_shap": -0.002685469091379227,
+            "rank": 14
+          },
+          {
+            "feature": "s731g",
+            "mean_abs_shap": 0.015862213667792457,
+            "mean_signed_shap": 0.00039077973509762015,
+            "rank": 15
+          },
+          {
+            "feature": "v467c",
+            "mean_abs_shap": 0.014050311401130361,
+            "mean_signed_shap": 0.009184809795132455,
+            "rank": 16
+          },
+          {
+            "feature": "s116",
+            "mean_abs_shap": 0.013502372443649433,
+            "mean_signed_shap": 0.0017755156357022392,
+            "rank": 17
+          },
+          {
+            "feature": "v113",
+            "mean_abs_shap": 0.013360807242224465,
+            "mean_signed_shap": -0.005920072054354593,
+            "rank": 18
+          },
+          {
+            "feature": "s728a",
+            "mean_abs_shap": 0.010174037151896603,
+            "mean_signed_shap": 0.006238045315060046,
+            "rank": 19
+          },
+          {
+            "feature": "v467d",
+            "mean_abs_shap": 0.00892198817173357,
+            "mean_signed_shap": -0.003919553063056816,
+            "rank": 20
+          }
+        ]
+      },
+      {
+        "class_label": 2,
+        "features": [
+          {
+            "feature": "v445",
+            "mean_abs_shap": 0.16284988846934334,
+            "mean_signed_shap": 0.033591247615932164,
+            "rank": 1
+          },
+          {
+            "feature": "s728a",
+            "mean_abs_shap": 0.10610760623118089,
+            "mean_signed_shap": -0.027587414677452505,
+            "rank": 2
+          },
+          {
+            "feature": "v113",
+            "mean_abs_shap": 0.09181137380587155,
+            "mean_signed_shap": 0.014343588503853859,
+            "rank": 3
+          },
+          {
+            "feature": "v467b",
+            "mean_abs_shap": 0.07723264597241006,
+            "mean_signed_shap": 0.02214700117028485,
+            "rank": 4
+          },
+          {
+            "feature": "v012",
+            "mean_abs_shap": 0.07606664055267119,
+            "mean_signed_shap": -0.004527158367008812,
+            "rank": 5
+          },
+          {
+            "feature": "v133",
+            "mean_abs_shap": 0.06499192866525881,
+            "mean_signed_shap": -0.029473300921619098,
+            "rank": 6
+          },
+          {
+            "feature": "s731d",
+            "mean_abs_shap": 0.05677746806238549,
+            "mean_signed_shap": 0.00316832834558908,
+            "rank": 7
+          },
+          {
+            "feature": "s731f",
+            "mean_abs_shap": 0.035993384319801,
+            "mean_signed_shap": -0.01730572965758483,
+            "rank": 8
+          },
+          {
+            "feature": "v208",
+            "mean_abs_shap": 0.032928860199692586,
+            "mean_signed_shap": -0.006507262250479713,
+            "rank": 9
+          },
+          {
+            "feature": "v467c",
+            "mean_abs_shap": 0.025988385102304373,
+            "mean_signed_shap": -0.00916252733089228,
+            "rank": 10
+          },
+          {
+            "feature": "v212",
+            "mean_abs_shap": 0.025500808969636937,
+            "mean_signed_shap": 0.00037741982937912537,
+            "rank": 11
+          },
+          {
+            "feature": "v467d",
+            "mean_abs_shap": 0.022271034134657884,
+            "mean_signed_shap": 0.0025417514847343677,
+            "rank": 12
+          },
+          {
+            "feature": "v501",
+            "mean_abs_shap": 0.01994473295250164,
+            "mean_signed_shap": 0.011672999009311858,
+            "rank": 13
+          },
+          {
+            "feature": "s731b",
+            "mean_abs_shap": 0.01672532279331748,
+            "mean_signed_shap": -0.0031869820684992008,
+            "rank": 14
+          },
+          {
+            "feature": "s731g",
+            "mean_abs_shap": 0.014799336698800973,
+            "mean_signed_shap": -0.0011087230001415938,
+            "rank": 15
+          },
+          {
+            "feature": "v467f",
+            "mean_abs_shap": 0.012630010673603531,
+            "mean_signed_shap": 0.012549300641207442,
+            "rank": 16
+          },
+          {
+            "feature": "s731e",
+            "mean_abs_shap": 0.010165167948212515,
+            "mean_signed_shap": 0.001540685330166194,
+            "rank": 17
+          },
+          {
+            "feature": "v404",
+            "mean_abs_shap": 0.008534779226957783,
+            "mean_signed_shap": -0.0006565214789967512,
+            "rank": 18
+          },
+          {
+            "feature": "s116",
+            "mean_abs_shap": 0.006158778401209834,
+            "mean_signed_shap": 0.0033779063733740135,
+            "rank": 19
+          },
+          {
+            "feature": "v405",
+            "mean_abs_shap": 0.0026725386435788793,
+            "mean_signed_shap": 0.0009484834708285163,
+            "rank": 20
+          }
+        ]
+      },
+      {
+        "class_label": 3,
+        "features": [
+          {
+            "feature": "s731e",
+            "mean_abs_shap": 0.10442130330656657,
+            "mean_signed_shap": 0.02173833910166241,
+            "rank": 1
+          },
+          {
+            "feature": "v208",
+            "mean_abs_shap": 0.09611001582667927,
+            "mean_signed_shap": -0.018410855090103824,
+            "rank": 2
+          },
+          {
+            "feature": "v133",
+            "mean_abs_shap": 0.05682492576690737,
+            "mean_signed_shap": 0.0067281968036044075,
+            "rank": 3
+          },
+          {
+            "feature": "v212",
+            "mean_abs_shap": 0.04872034124865785,
+            "mean_signed_shap": 0.00329397191119897,
+            "rank": 4
+          },
+          {
+            "feature": "v467b",
+            "mean_abs_shap": 0.04113425797936298,
+            "mean_signed_shap": 0.006529769683085129,
+            "rank": 5
+          },
+          {
+            "feature": "s731g",
+            "mean_abs_shap": 0.040841796650689016,
+            "mean_signed_shap": -0.029121242482474646,
+            "rank": 6
+          },
+          {
+            "feature": "v312",
+            "mean_abs_shap": 0.03914148752959445,
+            "mean_signed_shap": 0.009944353324917934,
+            "rank": 7
+          },
+          {
+            "feature": "v445",
+            "mean_abs_shap": 0.03504439334919849,
+            "mean_signed_shap": -0.012680546132198205,
+            "rank": 8
+          },
+          {
+            "feature": "v467d",
+            "mean_abs_shap": 0.029436971221884614,
+            "mean_signed_shap": 0.012470217314172192,
+            "rank": 9
+          },
+          {
+            "feature": "v116",
+            "mean_abs_shap": 0.02584256382049217,
+            "mean_signed_shap": -0.008142810890057613,
+            "rank": 10
+          },
+          {
+            "feature": "v012",
+            "mean_abs_shap": 0.02194048608652697,
+            "mean_signed_shap": 0.005020892483790522,
+            "rank": 11
+          },
+          {
+            "feature": "s116",
+            "mean_abs_shap": 0.02040060229685595,
+            "mean_signed_shap": 0.002398664552887165,
+            "rank": 12
+          },
+          {
+            "feature": "v025",
+            "mean_abs_shap": 0.01865708424176644,
+            "mean_signed_shap": 0.0018712038502972587,
+            "rank": 13
+          },
+          {
+            "feature": "v190",
+            "mean_abs_shap": 0.015155291883072236,
+            "mean_signed_shap": -0.0025273814276153875,
+            "rank": 14
+          },
+          {
+            "feature": "v201",
+            "mean_abs_shap": 0.013189405931052667,
+            "mean_signed_shap": -0.012267153620617532,
+            "rank": 15
+          },
+          {
+            "feature": "v501",
+            "mean_abs_shap": 0.009406119944564917,
+            "mean_signed_shap": 0.001489896804379011,
+            "rank": 16
+          },
+          {
+            "feature": "v024",
+            "mean_abs_shap": 0.008854394396268811,
+            "mean_signed_shap": -0.008609993461907162,
+            "rank": 17
+          },
+          {
+            "feature": "v228",
+            "mean_abs_shap": 0.008568010937971604,
+            "mean_signed_shap": -0.00044036390925819975,
+            "rank": 18
+          },
+          {
+            "feature": "v130",
+            "mean_abs_shap": 0.008475689091156953,
+            "mean_signed_shap": 0.002147724697101249,
+            "rank": 19
+          },
+          {
+            "feature": "v404",
+            "mean_abs_shap": 0.008085963117703364,
+            "mean_signed_shap": 0.00031239363878486317,
+            "rank": 20
+          }
+        ]
+      }
+    ],
+    "global_features": [
+      {
+        "feature": "v445",
+        "mean_abs_shap": 0.1350571207041624,
+        "mean_signed_shap": 0.02580654457938374,
+        "rank": 1
+      },
+      {
+        "feature": "v012",
+        "mean_abs_shap": 0.08804491551362421,
+        "mean_signed_shap": 0.011969336565727148,
+        "rank": 2
+      },
+      {
+        "feature": "v133",
+        "mean_abs_shap": 0.06986492490851617,
+        "mean_signed_shap": -0.008526182784892212,
+        "rank": 3
+      },
+      {
+        "feature": "v208",
+        "mean_abs_shap": 0.06903977598825149,
+        "mean_signed_shap": -0.01968192337590612,
+        "rank": 4
+      },
+      {
+        "feature": "v212",
+        "mean_abs_shap": 0.05524011786457567,
+        "mean_signed_shap": -0.003437197087355527,
+        "rank": 5
+      },
+      {
+        "feature": "s731e",
+        "mean_abs_shap": 0.05193315370266388,
+        "mean_signed_shap": 0.0034381167142522543,
+        "rank": 6
+      },
+      {
+        "feature": "v467b",
+        "mean_abs_shap": 0.03748623009501468,
+        "mean_signed_shap": 0.006644472646553607,
+        "rank": 7
+      },
+      {
+        "feature": "v213",
+        "mean_abs_shap": 0.033057001074155414,
+        "mean_signed_shap": -0.0029422599150971903,
+        "rank": 8
+      },
+      {
+        "feature": "s728a",
+        "mean_abs_shap": 0.03148842305725436,
+        "mean_signed_shap": -0.005022595901476406,
+        "rank": 9
+      },
+      {
+        "feature": "v113",
+        "mean_abs_shap": 0.02844678789042662,
+        "mean_signed_shap": 0.002968787329858727,
+        "rank": 10
+      },
+      {
+        "feature": "v201",
+        "mean_abs_shap": 0.024049723254981215,
+        "mean_signed_shap": -0.0021875261486663457,
+        "rank": 11
+      },
+      {
+        "feature": "s731d",
+        "mean_abs_shap": 0.02339710701300958,
+        "mean_signed_shap": 0.0023510919499886737,
+        "rank": 12
+      },
+      {
+        "feature": "s731g",
+        "mean_abs_shap": 0.021347204067641557,
+        "mean_signed_shap": -0.0068974317804328744,
+        "rank": 13
+      },
+      {
+        "feature": "s116",
+        "mean_abs_shap": 0.01825052952756113,
+        "mean_signed_shap": 0.0008386106328708569,
+        "rank": 14
+      },
+      {
+        "feature": "v228",
+        "mean_abs_shap": 0.017732943879194475,
+        "mean_signed_shap": 0.007228479403183372,
+        "rank": 15
+      },
+      {
+        "feature": "v467d",
+        "mean_abs_shap": 0.017127093793731785,
+        "mean_signed_shap": 0.0038515893394752538,
+        "rank": 16
+      },
+      {
+        "feature": "v312",
+        "mean_abs_shap": 0.01649114716626153,
+        "mean_signed_shap": 0.001195023579444875,
+        "rank": 17
+      },
+      {
+        "feature": "v404",
+        "mean_abs_shap": 0.01645516138223359,
+        "mean_signed_shap": 0.0034232411141292274,
+        "rank": 18
+      },
+      {
+        "feature": "v501",
+        "mean_abs_shap": 0.015941353792998898,
+        "mean_signed_shap": 0.003526323718909712,
+        "rank": 19
+      },
+      {
+        "feature": "s731f",
+        "mean_abs_shap": 0.014087103063535146,
+        "mean_signed_shap": -0.0011825604680613608,
+        "rank": 20
+      }
+    ],
+    "interpretation": "associational_not_causal",
+    "locked_test_evaluated": false,
+    "method": "SHAP",
+    "model_stage": "development_candidate_before_temperature_scaling",
+    "partition": "calibration",
+    "row_level_values_persisted": false,
+    "sample_count": 12,
+    "scope": "aggregate_only",
+    "variant": "india_policy"
+  },
+  "model_comparison": [
+    {
+      "balanced_accuracy_mean": 0.21588675792897805,
+      "display_name": "Multinomial Logistic Regression",
+      "macro_f1_mean": 0.2099565899347523,
+      "macro_f1_standard_deviation": 0.011673539599837265,
+      "model_name": "logistic_regression",
+      "severe_recall_mean": 0.047268907563025216,
+      "total_model_fits": 6
+    },
+    {
+      "balanced_accuracy_mean": 0.24085117918135,
+      "display_name": "Random Forest",
+      "macro_f1_mean": 0.2228719771467805,
+      "macro_f1_standard_deviation": 0.022560819136532694,
+      "model_name": "random_forest",
+      "severe_recall_mean": 0.047268907563025216,
+      "total_model_fits": 6
+    },
+    {
+      "balanced_accuracy_mean": 0.27899667931688804,
+      "display_name": "LightGBM",
+      "macro_f1_mean": 0.2786068491750516,
+      "macro_f1_standard_deviation": 0.0303727228039957,
+      "model_name": "lightgbm",
+      "severe_recall_mean": 0.197072377338032,
+      "total_model_fits": 6
+    }
+  ],
+  "project_title": "NFHS-5 Anaemia Severity ML",
+  "responsible_use": [
+    "Research and engineering demonstration only",
+    "No individual diagnosis or treatment decisions",
+    "SHAP associations are not causal effects",
+    "Final claims require the protocol-gated locked-test evaluation"
+  ],
+  "result_status": "synthetic_engineering_demo",
+  "run_kind": "synthetic_smoke",
+  "schema_version": "1.0.0",
+  "selection": {
+    "model_name": "lightgbm",
+    "parameters": {
+      "min_child_samples": 5,
+      "n_estimators": 30,
+      "num_leaves": 15
+    },
+    "primary_metric": "macro_f1",
+    "selection_scope": "nested_grouped_cv_on_development_only"
+  },
+  "workflow": {
+    "experiment_fingerprint": "8e8caa84162529364b4e1f4159799a31cd935d8d57a674c96109b697756e4e22",
+    "fold_local_preprocessing": true,
+    "group_disjoint_partitions": true,
+    "partition_rows": {
+      "calibration": 12,
+      "development": 84,
+      "locked_test": 24
+    },
+    "survey_weighted_metrics": true,
+    "variant": "india_policy",
+    "version": "1.0.0"
+  }
+}

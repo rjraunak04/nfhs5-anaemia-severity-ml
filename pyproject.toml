@@ -25,6 +25,7 @@ dependencies = [
 
 [project.scripts]
 anaemia-train = "anaemia_ml.training:main"
+anaemia-day2 = "anaemia_ml.day2:main"
 
 [project.optional-dependencies]
 modeling = [
@@ -59,7 +60,9 @@ dev = [
     "pre-commit>=3.8,<5",
     "nbqa>=1.9,<2",
     "optuna>=4,<5",
-    "lightgbm>=4.5,<5"
+    "lightgbm>=4.5,<5",
+    "shap>=0.46,<1",
+    "streamlit>=1.38,<2"
 ]
 
 [tool.setuptools.packages.find]
