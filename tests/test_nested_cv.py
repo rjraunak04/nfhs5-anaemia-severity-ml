@@ -294,9 +294,7 @@ def test_survey_weights_are_used_without_being_reported(
     )
 
     payload = report.summary()
-    assert np.isfinite(
-        [metric["mean"] for metric in payload["aggregate_metrics"].values()]
-    ).all()
+    assert np.isfinite([metric["mean"] for metric in payload["aggregate_metrics"].values()]).all()
     assert "sample_weight" not in json.dumps(payload)
 
 

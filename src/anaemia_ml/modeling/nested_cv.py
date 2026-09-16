@@ -127,8 +127,7 @@ class NestedCVReport:
             "random_seed": self.random_seed,
             "outer_folds": [fold.summary() for fold in self.outer_fold_results],
             "aggregate_metrics": {
-                aggregate.name: aggregate.as_dict()
-                for aggregate in self.aggregate_metrics
+                aggregate.name: aggregate.as_dict() for aggregate in self.aggregate_metrics
             },
             "total_model_fits": self.total_model_fits,
         }
@@ -156,9 +155,7 @@ _DEFAULT_PARAMETER_CANDIDATES = {
 def default_parameter_candidates(model_name: str) -> tuple[dict[str, Any], ...]:
     """Return fresh copies of deterministic smoke-search candidates."""
     spec = model_spec(model_name)
-    return tuple(
-        dict(parameters) for parameters in _DEFAULT_PARAMETER_CANDIDATES[spec.name]
-    )
+    return tuple(dict(parameters) for parameters in _DEFAULT_PARAMETER_CANDIDATES[spec.name])
 
 
 def _validated_vector(
@@ -169,9 +166,7 @@ def _validated_vector(
 ) -> np.ndarray:
     vector = np.asarray(values)
     if vector.ndim != 1 or vector.size != expected_length:
-        raise NestedCVError(
-            f"{name} must be one-dimensional with {expected_length} values."
-        )
+        raise NestedCVError(f"{name} must be one-dimensional with {expected_length} values.")
     if bool(pd.isna(vector).any()):
         raise NestedCVError(f"{name} must not contain missing values.")
     return vector
@@ -203,9 +198,7 @@ def _validated_candidates(
     n_jobs: int,
     search_budget: int,
 ) -> tuple[dict[str, Any], ...]:
-    raw_candidates = (
-        default_parameter_candidates(model_name) if candidates is None else candidates
-    )
+    raw_candidates = default_parameter_candidates(model_name) if candidates is None else candidates
     if isinstance(raw_candidates, (str, bytes, Mapping)):
         raise NestedCVError("parameter_candidates must be a sequence of mappings.")
     copied_candidates = tuple(raw_candidates)
@@ -308,17 +301,11 @@ def _candidate_from_checkpoint(
     except (KeyError, TypeError, ValueError) as error:
         raise NestedCVError("Checkpoint candidate summary is malformed.") from error
     if number < 1 or number > len(candidates):
-        raise NestedCVError(
-            "Checkpoint candidate number is outside the current search."
-        )
+        raise NestedCVError("Checkpoint candidate number is outside the current search.")
     if parameters != dict(candidates[number - 1]):
-        raise NestedCVError(
-            "Checkpoint parameters do not match the current candidates."
-        )
+        raise NestedCVError("Checkpoint parameters do not match the current candidates.")
     if len(inner_scores) != inner_count or not np.isfinite(inner_scores).all():
-        raise NestedCVError(
-            "Checkpoint inner-fold scores are incomplete or non-finite."
-        )
+        raise NestedCVError("Checkpoint inner-fold scores are incomplete or non-finite.")
     expected_mean = float(np.mean(inner_scores))
     expected_standard_deviation = _sample_standard_deviation(inner_scores)
     if not np.isclose(mean, expected_mean) or not np.isclose(
@@ -357,9 +344,7 @@ def _outer_fold_from_checkpoint(
         raise NestedCVError("Checkpoint outer-fold number is outside the current run.")
     if training_rows < 1 or validation_rows < 1:
         raise NestedCVError("Checkpoint fold row counts must be positive.")
-    if not isinstance(candidate_values, list) or len(candidate_values) != len(
-        candidates
-    ):
+    if not isinstance(candidate_values, list) or len(candidate_values) != len(candidates):
         raise NestedCVError("Checkpoint candidate results are incomplete.")
     candidate_scores = tuple(
         _candidate_from_checkpoint(
@@ -374,18 +359,13 @@ def _outer_fold_from_checkpoint(
     ):
         raise NestedCVError("Checkpoint candidate results are not in canonical order.")
     selected = _select_candidate(candidate_scores)
-    if (
-        selected_number != selected.candidate_number
-        or selected_parameters != selected.parameters
-    ):
+    if selected_number != selected.candidate_number or selected_parameters != selected.parameters:
         raise NestedCVError("Checkpoint selected candidate is inconsistent.")
     metric_names = tuple(MulticlassMetrics.__dataclass_fields__)
     if set(metric_values) != set(metric_names):
         raise NestedCVError("Checkpoint metric fields are incomplete or unknown.")
     try:
-        metrics = MulticlassMetrics(
-            **{name: float(metric_values[name]) for name in metric_names}
-        )
+        metrics = MulticlassMetrics(**{name: float(metric_values[name]) for name in metric_names})
     except (TypeError, ValueError) as error:
         raise NestedCVError("Checkpoint metrics must be numeric.") from error
     if not np.isfinite(tuple(metrics.as_dict().values())).all():
@@ -451,9 +431,7 @@ def run_grouped_nested_cv(
         search_budget=search_budget,
     )
     if (checkpoint_path is None) != (checkpoint_identity is None):
-        raise NestedCVError(
-            "checkpoint_path and checkpoint_identity must be provided together."
-        )
+        raise NestedCVError("checkpoint_path and checkpoint_identity must be provided together.")
     resumed_results: dict[int, OuterFoldResult] = {}
     if checkpoint_path is not None and checkpoint_identity is not None:
         snapshot = load_checkpoint(checkpoint_path, checkpoint_identity)
@@ -518,9 +496,7 @@ def run_grouped_nested_cv(
                     feature_schema,
                     copied_config,
                     variant=variant,
-                    train_sample_weight=(
-                        None if weights is None else weights[train_indices]
-                    ),
+                    train_sample_weight=(None if weights is None else weights[train_indices]),
                     validation_sample_weight=(
                         None if weights is None else weights[validation_indices]
                     ),
@@ -528,9 +504,7 @@ def run_grouped_nested_cv(
                     parameters=parameters,
                 )
                 inner_scores.append(run.metrics.macro_f1)
-            candidate_scores.append(
-                _candidate_score(candidate_number, parameters, inner_scores)
-            )
+            candidate_scores.append(_candidate_score(candidate_number, parameters, inner_scores))
 
         selected = _select_candidate(candidate_scores)
         outer_train = fold.outer.train_indices
@@ -547,9 +521,7 @@ def run_grouped_nested_cv(
             copied_config,
             variant=variant,
             train_sample_weight=None if weights is None else weights[outer_train],
-            validation_sample_weight=(
-                None if weights is None else weights[outer_validation]
-            ),
+            validation_sample_weight=(None if weights is None else weights[outer_validation]),
             n_jobs=n_jobs,
             parameters=selected.parameters,
         )

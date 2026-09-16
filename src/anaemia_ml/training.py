@@ -107,11 +107,7 @@ def _non_empty_text(value: Any, *, name: str) -> str:
 
 
 def _positive_integer(value: Any, *, name: str, minimum: int = 1) -> int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, Integral)
-        or int(value) < minimum
-    ):
+    if isinstance(value, bool) or not isinstance(value, Integral) or int(value) < minimum:
         raise TrainingWorkflowError(f"{name} must be an integer >= {minimum}.")
     return int(value)
 
@@ -160,9 +156,7 @@ def _target_values(frame: pd.DataFrame, contract: Mapping[str, Any]) -> np.ndarr
     target = mapped.to_numpy(dtype=int)
     expected = set(target_settings["ordered_classes"])
     if set(target.tolist()) != expected:
-        raise TrainingWorkflowError(
-            "Training data must contain every prespecified target class."
-        )
+        raise TrainingWorkflowError("Training data must contain every prespecified target class.")
     return target
 
 
@@ -177,9 +171,7 @@ def _composite_groups(
     group_index = pd.MultiIndex.from_frame(frame.loc[:, columns])
     codes, _ = pd.factorize(group_index, sort=True)
     if (codes < 0).any():
-        raise TrainingWorkflowError(
-            "Composite PSU groups must not contain missing values."
-        )
+        raise TrainingWorkflowError("Composite PSU groups must not contain missing values.")
     return codes.astype(np.int64, copy=False)
 
 
@@ -187,11 +179,7 @@ def _survey_weights(frame: pd.DataFrame, contract: Mapping[str, Any]) -> np.ndar
     survey = contract["survey_design"]
     column = survey["weight_column"]
     divisor = survey["weight_divisor"]
-    if (
-        isinstance(divisor, bool)
-        or not isinstance(divisor, int | float)
-        or divisor <= 0
-    ):
+    if isinstance(divisor, bool) or not isinstance(divisor, int | float) or divisor <= 0:
         raise TrainingWorkflowError("survey_design.weight_divisor must be positive.")
     try:
         weights = frame[column].to_numpy(dtype=float) / float(divisor)
@@ -274,9 +262,7 @@ def _consensus_parameters(report: NestedCVReport) -> dict[str, Any]:
             else:
                 parameters, values = existing
                 if parameters != score.parameters:
-                    raise TrainingWorkflowError(
-                        "Candidate parameters changed between outer folds."
-                    )
+                    raise TrainingWorkflowError("Candidate parameters changed between outer folds.")
                 values.append(score.mean_macro_f1)
     if not candidates:
         raise TrainingWorkflowError("Nested CV report contains no candidates.")
@@ -334,9 +320,7 @@ def _validated_candidate_map(
         raise TrainingWorkflowError("parameter_candidates must be a mapping.")
     unknown = sorted(set(parameter_candidates) - set(model_names))
     if unknown:
-        raise TrainingWorkflowError(
-            f"parameter_candidates contains unrequested models: {unknown}."
-        )
+        raise TrainingWorkflowError(f"parameter_candidates contains unrequested models: {unknown}.")
     return {name: parameter_candidates.get(name) for name in model_names}
 
 
@@ -348,9 +332,7 @@ def _model_checkpoint_identity(
 ) -> ExperimentIdentity:
     """Bind an experiment identity to one model and feature variant."""
     return ExperimentIdentity(
-        experiment_id=(
-            f"{identity.experiment_id}:model={model_name}:variant={variant}"
-        ),
+        experiment_id=(f"{identity.experiment_id}:model={model_name}:variant={variant}"),
         dataset_fingerprint=identity.dataset_fingerprint,
         validation_fingerprint=identity.validation_fingerprint,
         feature_schema_fingerprint=identity.feature_schema_fingerprint,
@@ -368,9 +350,7 @@ def _preflight_output(output_directory: Path, *, overwrite: bool) -> None:
     )
     existing = [str(path) for path in targets if path.exists()]
     if existing and not overwrite:
-        raise ArtifactError(
-            f"Refusing to overwrite existing workflow output: {existing}."
-        )
+        raise ArtifactError(f"Refusing to overwrite existing workflow output: {existing}.")
 
 
 def run_development_training(
@@ -492,8 +472,7 @@ def run_development_training(
         overwrite=overwrite,
     )
     partition_sizes = {
-        name: int(indices.size)
-        for name, indices in prepared.partitions.as_dict().items()
+        name: int(indices.size) for name, indices in prepared.partitions.as_dict().items()
     }
     report_payload = {
         "workflow_version": WORKFLOW_VERSION,

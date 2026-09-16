@@ -63,16 +63,11 @@ def test_preparation_keeps_restricted_columns_out_of_predictors(configs) -> None
     )
 
     assert prepared.predictors.columns.tolist() == feature_columns(schema)
-    assert not set(contract["never_use_as_predictors"]) & set(
-        prepared.predictors.columns
-    )
+    assert not set(contract["never_use_as_predictors"]) & set(prepared.predictors.columns)
     assert set(prepared.target) == {0, 1, 2, 3}
-    assert sum(
-        indices.size for indices in prepared.partitions.as_dict().values()
-    ) == len(frame)
+    assert sum(indices.size for indices in prepared.partitions.as_dict().values()) == len(frame)
     group_sets = [
-        set(prepared.groups[indices])
-        for indices in prepared.partitions.as_dict().values()
+        set(prepared.groups[indices]) for indices in prepared.partitions.as_dict().values()
     ]
     assert not group_sets[0] & group_sets[1]
     assert not group_sets[0] & group_sets[2]
