@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from anaemia_ml.data.validate import load_contract
 from anaemia_ml.evaluation.config import load_validation_config
 from anaemia_ml.features.schema import feature_columns, load_feature_schema
