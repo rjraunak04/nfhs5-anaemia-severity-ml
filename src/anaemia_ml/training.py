@@ -340,6 +340,25 @@ def _validated_candidate_map(
     return {name: parameter_candidates.get(name) for name in model_names}
 
 
+def _model_checkpoint_identity(
+    identity: ExperimentIdentity,
+    *,
+    model_name: str,
+    variant: str,
+) -> ExperimentIdentity:
+    """Bind an experiment identity to one model and feature variant."""
+    return ExperimentIdentity(
+        experiment_id=(
+            f"{identity.experiment_id}:model={model_name}:variant={variant}"
+        ),
+        dataset_fingerprint=identity.dataset_fingerprint,
+        validation_fingerprint=identity.validation_fingerprint,
+        feature_schema_fingerprint=identity.feature_schema_fingerprint,
+        search_space_fingerprint=identity.search_space_fingerprint,
+        code_version=identity.code_version,
+    )
+
+
 def _preflight_output(output_directory: Path, *, overwrite: bool) -> None:
     if output_directory.exists() and not output_directory.is_dir():
         raise ArtifactError(f"output_directory is not a directory: {output_directory}")
@@ -394,6 +413,14 @@ def run_development_training(
     validate_search_space(search_space)
     output_path = Path(output_directory)
     _preflight_output(output_path, overwrite=overwrite)
+    identity = build_experiment_identity(
+        experiment_id=checked_experiment_id,
+        dataset_fingerprint=checked_fingerprint,
+        validation_config=validation_config,
+        feature_schema=feature_schema,
+        search_space=search_space,
+        code_version=checked_code_version,
+    )
 
     prepared = prepare_development_data(
         frame,
@@ -404,21 +431,29 @@ def run_development_training(
         strict_profile=strict_profile,
     )
     development = prepared.partitions.development
-    reports = tuple(
-        run_grouped_nested_cv(
-            name,
-            prepared.predictors.iloc[development],
-            prepared.target[development],
-            prepared.groups[development],
-            feature_schema,
-            validation_config,
-            parameter_candidates=candidates[name],
-            sample_weight=prepared.sample_weight[development],
-            variant=variant,
-            n_jobs=checked_jobs,
+    reports = []
+    for name in names:
+        reports.append(
+            run_grouped_nested_cv(
+                name,
+                prepared.predictors.iloc[development],
+                prepared.target[development],
+                prepared.groups[development],
+                feature_schema,
+                validation_config,
+                parameter_candidates=candidates[name],
+                sample_weight=prepared.sample_weight[development],
+                variant=variant,
+                n_jobs=checked_jobs,
+                checkpoint_path=output_path / "checkpoints" / f"{name}.json",
+                checkpoint_identity=_model_checkpoint_identity(
+                    identity,
+                    model_name=name,
+                    variant=variant,
+                ),
+            )
         )
-        for name in names
-    )
+    reports = tuple(reports)
     selected_index = max(
         range(len(reports)),
         key=lambda index: (_macro_f1(reports[index]), -index),
@@ -433,14 +468,6 @@ def run_development_training(
         validation_config,
         variant=variant,
         n_jobs=checked_jobs,
-    )
-    identity = build_experiment_identity(
-        experiment_id=checked_experiment_id,
-        dataset_fingerprint=checked_fingerprint,
-        validation_config=validation_config,
-        feature_schema=feature_schema,
-        search_space=search_space,
-        code_version=checked_code_version,
     )
     artifact_metadata = {
         "workflow_version": WORKFLOW_VERSION,
@@ -486,6 +513,11 @@ def run_development_training(
             "selected_development_macro_f1": _macro_f1(selected_report),
         },
         "model_artifact": artifact_manifest.as_dict(),
+        "resumability": {
+            "granularity": "completed_outer_fold",
+            "atomic_checkpoint_writes": True,
+            "row_level_values_persisted": False,
+        },
         "calibration_evaluated": False,
         "locked_test_evaluated": False,
         "final_performance_claim_allowed": False,

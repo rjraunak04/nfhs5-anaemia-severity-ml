@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from anaemia_ml.data.validate import load_contract
 from anaemia_ml.evaluation.config import load_validation_config
 from anaemia_ml.features.schema import feature_columns, load_feature_schema
@@ -126,6 +125,16 @@ def test_one_command_smoke_run_writes_report_and_loadable_model(
         "lightgbm",
     }
     assert report["final_performance_claim_allowed"] is False
+    assert report["resumability"] == {
+        "granularity": "completed_outer_fold",
+        "atomic_checkpoint_writes": True,
+        "row_level_values_persisted": False,
+    }
+    assert {path.name for path in (output / "checkpoints").glob("*.json")} == {
+        "logistic_regression.json",
+        "random_forest.json",
+        "lightgbm.json",
+    }
     assert loaded.manifest.experiment_fingerprint == report["experiment_fingerprint"]
     predictions = loaded.pipeline.predict(smoke_frame[feature_columns(schema)])
     assert predictions.shape == (120,)

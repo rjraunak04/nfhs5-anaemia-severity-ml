@@ -8,11 +8,14 @@ import json
 import numpy as np
 import pandas as pd
 import pytest
-
 from anaemia_ml.modeling import (
     NestedCVError,
     default_parameter_candidates,
     run_grouped_nested_cv,
+)
+from anaemia_ml.modeling.checkpoints import (
+    build_experiment_identity,
+    save_outer_fold_checkpoint,
 )
 from anaemia_ml.modeling.registry import ModelRegistryError
 from anaemia_ml.preprocessing import predictor_groups
@@ -190,6 +193,87 @@ def test_nested_cv_is_reproducible(
     second = run_grouped_nested_cv(*arguments, parameter_candidates=({"C": 1.0},))
 
     assert first.summary() == second.summary()
+
+
+def test_nested_cv_resumes_completed_outer_folds(
+    development_data: tuple,
+    feature_schema: dict,
+    validation_config: dict,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    frame, target, groups, _ = development_data
+    candidates = ({"C": 0.5}, {"C": 1.0})
+    baseline = run_grouped_nested_cv(
+        "logistic_regression",
+        frame,
+        target,
+        groups,
+        feature_schema,
+        validation_config,
+        parameter_candidates=candidates,
+    )
+    identity = build_experiment_identity(
+        experiment_id="resume-test",
+        dataset_fingerprint="dataset",
+        validation_config=validation_config,
+        feature_schema=feature_schema,
+        search_space={"candidate_count": 2},
+        code_version="test-commit",
+    )
+    checkpoint = tmp_path / "logistic-regression.json"
+    save_outer_fold_checkpoint(
+        checkpoint,
+        identity,
+        baseline.outer_fold_results[0].summary(),
+    )
+
+    import anaemia_ml.modeling.nested_cv as nested_cv_module
+
+    original = nested_cv_module.fit_evaluate_model
+    fit_calls = 0
+
+    def counted_fit(*args, **kwargs):
+        nonlocal fit_calls
+        fit_calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(nested_cv_module, "fit_evaluate_model", counted_fit)
+    resumed = run_grouped_nested_cv(
+        "logistic_regression",
+        frame,
+        target,
+        groups,
+        feature_schema,
+        validation_config,
+        parameter_candidates=candidates,
+        checkpoint_path=checkpoint,
+        checkpoint_identity=identity,
+    )
+
+    assert resumed.summary() == baseline.summary()
+    assert fit_calls == 5
+
+
+def test_checkpoint_arguments_must_be_provided_together(
+    development_data: tuple,
+    feature_schema: dict,
+    validation_config: dict,
+    tmp_path,
+) -> None:
+    frame, target, groups, _ = development_data
+
+    with pytest.raises(NestedCVError, match="provided together"):
+        run_grouped_nested_cv(
+            "logistic_regression",
+            frame,
+            target,
+            groups,
+            feature_schema,
+            validation_config,
+            parameter_candidates=({"C": 1.0},),
+            checkpoint_path=tmp_path / "orphan.json",
+        )
 
 
 def test_survey_weights_are_used_without_being_reported(

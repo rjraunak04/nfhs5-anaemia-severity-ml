@@ -8,8 +8,10 @@ folds are used once for unbiased development performance estimation.
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -18,6 +20,11 @@ import pandas as pd
 from anaemia_ml.evaluation.config import validate_validation_config
 from anaemia_ml.evaluation.grouped_validation import nested_group_splits
 from anaemia_ml.evaluation.metrics import MulticlassMetrics
+from anaemia_ml.modeling.checkpoints import (
+    ExperimentIdentity,
+    load_checkpoint,
+    save_outer_fold_checkpoint,
+)
 from anaemia_ml.modeling.registry import build_estimator, model_spec
 from anaemia_ml.modeling.runner import fit_evaluate_model
 
@@ -285,6 +292,115 @@ def _aggregate_metrics(
     return tuple(aggregates)
 
 
+def _candidate_from_checkpoint(
+    value: Mapping[str, Any],
+    *,
+    candidates: Sequence[Mapping[str, Any]],
+    inner_count: int,
+) -> CandidateScore:
+    """Rebuild and validate one aggregate-only candidate result."""
+    try:
+        number = int(value["candidate_number"])
+        parameters = dict(value["parameters"])
+        inner_scores = tuple(float(score) for score in value["inner_macro_f1"])
+        mean = float(value["mean_macro_f1"])
+        standard_deviation = float(value["standard_deviation"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise NestedCVError("Checkpoint candidate summary is malformed.") from error
+    if number < 1 or number > len(candidates):
+        raise NestedCVError(
+            "Checkpoint candidate number is outside the current search."
+        )
+    if parameters != dict(candidates[number - 1]):
+        raise NestedCVError(
+            "Checkpoint parameters do not match the current candidates."
+        )
+    if len(inner_scores) != inner_count or not np.isfinite(inner_scores).all():
+        raise NestedCVError(
+            "Checkpoint inner-fold scores are incomplete or non-finite."
+        )
+    expected_mean = float(np.mean(inner_scores))
+    expected_standard_deviation = _sample_standard_deviation(inner_scores)
+    if not np.isclose(mean, expected_mean) or not np.isclose(
+        standard_deviation,
+        expected_standard_deviation,
+    ):
+        raise NestedCVError("Checkpoint candidate aggregates are inconsistent.")
+    return CandidateScore(
+        candidate_number=number,
+        parameters=parameters,
+        inner_macro_f1=inner_scores,
+        mean_macro_f1=mean,
+        standard_deviation=standard_deviation,
+    )
+
+
+def _outer_fold_from_checkpoint(
+    value: Mapping[str, Any],
+    *,
+    candidates: Sequence[Mapping[str, Any]],
+    inner_count: int,
+    outer_count: int,
+) -> OuterFoldResult:
+    """Rebuild one completed outer fold after strict compatibility checks."""
+    try:
+        fold_number = int(value["fold_number"])
+        selected_number = int(value["selected_candidate_number"])
+        selected_parameters = dict(value["selected_parameters"])
+        candidate_values = value["candidate_scores"]
+        training_rows = int(value["training_rows"])
+        validation_rows = int(value["validation_rows"])
+        metric_values = dict(value["metrics"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise NestedCVError("Checkpoint outer-fold summary is malformed.") from error
+    if fold_number < 1 or fold_number > outer_count:
+        raise NestedCVError("Checkpoint outer-fold number is outside the current run.")
+    if training_rows < 1 or validation_rows < 1:
+        raise NestedCVError("Checkpoint fold row counts must be positive.")
+    if not isinstance(candidate_values, list) or len(candidate_values) != len(
+        candidates
+    ):
+        raise NestedCVError("Checkpoint candidate results are incomplete.")
+    candidate_scores = tuple(
+        _candidate_from_checkpoint(
+            score,
+            candidates=candidates,
+            inner_count=inner_count,
+        )
+        for score in candidate_values
+    )
+    if tuple(score.candidate_number for score in candidate_scores) != tuple(
+        range(1, len(candidates) + 1)
+    ):
+        raise NestedCVError("Checkpoint candidate results are not in canonical order.")
+    selected = _select_candidate(candidate_scores)
+    if (
+        selected_number != selected.candidate_number
+        or selected_parameters != selected.parameters
+    ):
+        raise NestedCVError("Checkpoint selected candidate is inconsistent.")
+    metric_names = tuple(MulticlassMetrics.__dataclass_fields__)
+    if set(metric_values) != set(metric_names):
+        raise NestedCVError("Checkpoint metric fields are incomplete or unknown.")
+    try:
+        metrics = MulticlassMetrics(
+            **{name: float(metric_values[name]) for name in metric_names}
+        )
+    except (TypeError, ValueError) as error:
+        raise NestedCVError("Checkpoint metrics must be numeric.") from error
+    if not np.isfinite(tuple(metrics.as_dict().values())).all():
+        raise NestedCVError("Checkpoint metrics must be finite.")
+    return OuterFoldResult(
+        fold_number=fold_number,
+        selected_candidate_number=selected_number,
+        selected_parameters=selected_parameters,
+        candidate_scores=candidate_scores,
+        training_rows=training_rows,
+        validation_rows=validation_rows,
+        metrics=metrics,
+    )
+
+
 def run_grouped_nested_cv(
     model_name: str,
     X_development: pd.DataFrame,
@@ -297,6 +413,8 @@ def run_grouped_nested_cv(
     sample_weight: Sequence[float] | np.ndarray | None = None,
     variant: str = "india_policy",
     n_jobs: int = -1,
+    checkpoint_path: str | Path | None = None,
+    checkpoint_identity: ExperimentIdentity | None = None,
 ) -> NestedCVReport:
     """Select parameters on inner folds and score untouched outer folds."""
     if not isinstance(X_development, pd.DataFrame) or X_development.empty:
@@ -332,6 +450,26 @@ def run_grouped_nested_cv(
         n_jobs=n_jobs,
         search_budget=search_budget,
     )
+    if (checkpoint_path is None) != (checkpoint_identity is None):
+        raise NestedCVError(
+            "checkpoint_path and checkpoint_identity must be provided together."
+        )
+    resumed_results: dict[int, OuterFoldResult] = {}
+    if checkpoint_path is not None and checkpoint_identity is not None:
+        snapshot = load_checkpoint(checkpoint_path, checkpoint_identity)
+        if snapshot is not None:
+            resumed_results = {
+                result.fold_number: result
+                for result in (
+                    _outer_fold_from_checkpoint(
+                        summary,
+                        candidates=candidates,
+                        inner_count=inner_count,
+                        outer_count=outer_count,
+                    )
+                    for summary in snapshot.outer_fold_summaries
+                )
+            }
     folds = nested_group_splits(
         target,
         group_values,
@@ -342,6 +480,27 @@ def run_grouped_nested_cv(
 
     outer_results = []
     for fold in folds:
+        resumed = resumed_results.get(fold.number)
+        if resumed is not None:
+            if (
+                resumed.training_rows != fold.outer.train_indices.size
+                or resumed.validation_rows != fold.outer.validation_indices.size
+            ):
+                raise NestedCVError(
+                    "Checkpoint row counts do not match the deterministic outer fold."
+                )
+            outer_results.append(resumed)
+            print(
+                f"[{model_name}] outer fold {fold.number}/{outer_count} resumed",
+                file=sys.stderr,
+                flush=True,
+            )
+            continue
+        print(
+            f"[{model_name}] outer fold {fold.number}/{outer_count} started",
+            file=sys.stderr,
+            flush=True,
+        )
         candidate_scores = []
         for candidate_number, parameters in enumerate(candidates, start=1):
             inner_scores = []
@@ -394,16 +553,26 @@ def run_grouped_nested_cv(
             n_jobs=n_jobs,
             parameters=selected.parameters,
         )
-        outer_results.append(
-            OuterFoldResult(
-                fold_number=fold.number,
-                selected_candidate_number=selected.candidate_number,
-                selected_parameters=dict(selected.parameters),
-                candidate_scores=tuple(candidate_scores),
-                training_rows=outer_run.training_rows,
-                validation_rows=outer_run.validation_rows,
-                metrics=outer_run.metrics,
+        completed = OuterFoldResult(
+            fold_number=fold.number,
+            selected_candidate_number=selected.candidate_number,
+            selected_parameters=dict(selected.parameters),
+            candidate_scores=tuple(candidate_scores),
+            training_rows=outer_run.training_rows,
+            validation_rows=outer_run.validation_rows,
+            metrics=outer_run.metrics,
+        )
+        outer_results.append(completed)
+        if checkpoint_path is not None and checkpoint_identity is not None:
+            save_outer_fold_checkpoint(
+                checkpoint_path,
+                checkpoint_identity,
+                completed.summary(),
             )
+        print(
+            f"[{model_name}] outer fold {fold.number}/{outer_count} completed",
+            file=sys.stderr,
+            flush=True,
         )
 
     spec = model_spec(model_name)
