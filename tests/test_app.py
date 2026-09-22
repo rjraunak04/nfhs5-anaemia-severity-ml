@@ -12,7 +12,15 @@ def test_streamlit_app_starts_with_truth_disclosure() -> None:
 
     assert not app.exception
     assert app.title[0].value == "NFHS-5 Anaemia Severity ML"
-    assert any("not an NFHS research result" in item.value for item in app.markdown)
+    assert any("final test locked" in item.value for item in app.markdown)
     assert any(
         metric.label == "Locked test" and metric.value == "Untouched" for metric in app.metric
     )
+
+
+def test_synthetic_demo_is_explicitly_labeled() -> None:
+    app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
+    app.sidebar.radio[0].set_value("Synthetic engineering demo").run()
+
+    assert not app.exception
+    assert any("not an NFHS research result" in item.value for item in app.markdown)
