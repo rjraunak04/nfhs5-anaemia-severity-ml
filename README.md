@@ -212,16 +212,70 @@ Local data, model artifacts, checkpoints, caches, credentials, and virtual envir
 - [x] Prespecified research protocol
 - [x] Exact 40-variable data contract
 - [x] Python package and development-tool foundation
-- [ ] Executable data-contract validation and automated tests
+- [x] Executable data-contract validation and automated tests
 - [ ] Survey-weighted exploratory analysis
-- [ ] Cohort and leakage-safe feature pipeline
-- [ ] PSU-disjoint split generation and persistence
-- [ ] Baseline and ordinal modelling
-- [ ] Nested grouped tuning and imbalance ablation
-- [ ] Probability calibration and locked-test evaluation
+- [x] Cohort and leakage-safe feature pipeline
+- [x] PSU-disjoint split generation
+- [x] Deterministic logistic-regression, random-forest, and LightGBM registry
+- [x] Nested grouped selection with resumable tuning checkpoints
+- [x] Group-cross-fitted temperature selection on calibration data
+- [x] Aggregate-only SHAP reporting on calibration observations
+- [ ] Protocol-gated locked-test evaluation
 - [ ] Cluster-bootstrap confidence intervals
-- [ ] SHAP, subgroup, and state-held-out analyses
+- [ ] Subgroup and state-held-out analyses
 - [ ] Model card, reproducibility report, and manuscript release
+
+## Day 2: calibration, SHAP, and dashboard
+
+The Day 2 command extends the development workflow without opening the locked
+test partition. It compares the three registered models with grouped nested CV,
+fits the selected model on development data, selects temperature scaling with
+PSU-disjoint cross-fitting on calibration data, saves an integrity-checked
+calibrated artifact, and immediately aggregates SHAP values to raw predictors.
+
+Install the development dependencies and run the public-safe synthetic engineering
+demo:
+
+```powershell
+python -m pip install -e ".[dev]"
+anaemia-day2 --smoke --output-directory runs/day2-smoke
+streamlit run app.py
+```
+
+The bundled dashboard explicitly labels this run as synthetic and hides its
+synthetic performance scores from the default recruiter view. It demonstrates
+that all pipeline paths execute; it does **not** claim performance on NFHS
+participants.
+
+For a restricted real-data development run, first create the exact validated
+40-column extract described by `configs/data_contract.yaml`, keep it outside
+Git, and run:
+
+```powershell
+$env:ANAEMIA_CODE_VERSION = git rev-parse --short HEAD
+anaemia-day2 `
+  --data data/restricted/nfhs5_anaemia_modeling_extract.parquet `
+  --output-directory runs/day2-nfhs `
+  --code-version $env:ANAEMIA_CODE_VERSION
+```
+
+Day 2 writes only integrity-checked model files and aggregate JSON reports:
+
+```text
+runs/day2-nfhs/
+├── development/development_report.json
+├── development/model/manifest.json
+├── calibrated_model/manifest.json
+├── calibration_report.json
+├── explainability_report.json
+└── portfolio_summary.json
+```
+
+`portfolio_summary.json` is the only input accepted by the dashboard. Its
+schema rejects raw rows, respondent or PSU identifiers, split indices,
+predictions, probabilities, labels, and survey weights. Calibration and SHAP
+remain development-stage evidence; final performance claims stay disabled
+until every locked-test gate in `configs/validation.yaml` is satisfied.
 
 ## Responsible use and limitations
 

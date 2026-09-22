@@ -64,16 +64,11 @@ def test_preparation_keeps_restricted_columns_out_of_predictors(configs) -> None
     )
 
     assert prepared.predictors.columns.tolist() == feature_columns(schema)
-    assert not set(contract["never_use_as_predictors"]) & set(
-        prepared.predictors.columns
-    )
+    assert not set(contract["never_use_as_predictors"]) & set(prepared.predictors.columns)
     assert set(prepared.target) == {0, 1, 2, 3}
-    assert sum(
-        indices.size for indices in prepared.partitions.as_dict().values()
-    ) == len(frame)
+    assert sum(indices.size for indices in prepared.partitions.as_dict().values()) == len(frame)
     group_sets = [
-        set(prepared.groups[indices])
-        for indices in prepared.partitions.as_dict().values()
+        set(prepared.groups[indices]) for indices in prepared.partitions.as_dict().values()
     ]
     assert not group_sets[0] & group_sets[1]
     assert not group_sets[0] & group_sets[2]
@@ -126,6 +121,16 @@ def test_one_command_smoke_run_writes_report_and_loadable_model(
         "lightgbm",
     }
     assert report["final_performance_claim_allowed"] is False
+    assert report["resumability"] == {
+        "granularity": "completed_outer_fold",
+        "atomic_checkpoint_writes": True,
+        "row_level_values_persisted": False,
+    }
+    assert {path.name for path in (output / "checkpoints").glob("*.json")} == {
+        "logistic_regression.json",
+        "random_forest.json",
+        "lightgbm.json",
+    }
     assert loaded.manifest.experiment_fingerprint == report["experiment_fingerprint"]
     predictions = loaded.pipeline.predict(smoke_frame[feature_columns(schema)])
     assert predictions.shape == (120,)
