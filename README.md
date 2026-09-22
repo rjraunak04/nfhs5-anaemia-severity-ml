@@ -148,7 +148,7 @@ The public repository is protected by automated disclosure and deployability gat
 - `python scripts/public_repo_audit.py` rejects restricted data/model artifacts, common secret formats, row-level dashboard keys and local machine paths.
 - GitHub Actions runs the public audit, Ruff, the full pytest/coverage suite, notebook-cleanliness validation and a Docker image build.
 - [Public release status](docs/final_status.md) separates completed software engineering from intentionally gated confirmatory research.
-- [Deployment guide](docs/deployment.md) documents Streamlit Community Cloud; `render.yaml` and the root `Dockerfile` provide a container deployment path.
+- [Deployment guide](docs/deployment.md) documents Streamlit Community Cloud and Railway; `render.yaml` and the root `Dockerfile` provide container deployment paths.
 
 ### Repository map
 
