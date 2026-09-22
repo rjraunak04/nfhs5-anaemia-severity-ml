@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+title: "NFHS-5 Anaemia Severity ML"
+type: software
+authors:
+  - family-names: "Jaiswal"
+    given-names: "Ankur Kumar"
+version: 0.1.0
+date-released: 2026-09-22
+repository-code: "https://github.com/rjraunak04/nfhs5-anaemia-severity-ml"
+url: "https://github.com/rjraunak04/nfhs5-anaemia-severity-ml"
+abstract: >-
+  Survey-aware, leakage-resistant machine-learning research pipeline for
+  four-class anaemia severity classification among women aged 15-49 using
+  NFHS-5 India. This development release includes aggregate development and
+  calibration reporting but does not report locked-test performance.
+keywords:
+  - anaemia
+  - NFHS-5
+  - machine learning
+  - survey data
+  - multiclass classification
+  - calibration
