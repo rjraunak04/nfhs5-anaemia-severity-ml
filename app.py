@@ -15,7 +15,8 @@ from anaemia_ml.dashboard import (
 )
 
 ROOT = Path(__file__).parent
-DEFAULT_SUMMARY = ROOT / "demo" / "portfolio_summary.json"
+DEFAULT_SUMMARY = ROOT / "demo" / "nfhs_development_summary.json"
+SYNTHETIC_SUMMARY = ROOT / "demo" / "portfolio_summary.json"
 
 st.set_page_config(
     page_title="NFHS-5 Anaemia Severity ML",
@@ -38,23 +39,29 @@ st.markdown(
 
 
 @st.cache_data
-def _default_data() -> dict:
-    return load_portfolio_summary(DEFAULT_SUMMARY)
+def _default_data(path: str) -> dict:
+    return load_portfolio_summary(path)
 
 
 def _read_data() -> dict:
+    source = st.sidebar.radio(
+        "Data source", ["NFHS development results", "Synthetic engineering demo"]
+    )
+    default_path = (
+        DEFAULT_SUMMARY if source == "NFHS development results" else SYNTHETIC_SUMMARY
+    )
     uploaded = st.sidebar.file_uploader(
         "Load aggregate portfolio_summary.json",
         type=["json"],
         help="Only aggregate Day 2 output is accepted; raw participant data are rejected.",
     )
     if uploaded is None:
-        return _default_data()
+        return _default_data(str(default_path))
     try:
         return portfolio_summary_from_bytes(uploaded.getvalue())
     except DashboardDataError as error:
         st.sidebar.error(str(error))
-        return _default_data()
+        return _default_data(str(default_path))
 
 
 try:
