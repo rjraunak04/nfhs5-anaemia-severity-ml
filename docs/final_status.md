@@ -30,3 +30,20 @@ The synthetic smoke path verifies engineering behavior only. The default dashboa
 ## Research boundary
 
 The next research-only milestone is a separately reviewed confirmatory release after the protocol-defined state-held-out, final-test, bootstrap uncertainty and subgroup/geographic robustness gates are actually executed on authorized data. The public engineering release should not be delayed or misrepresented while those scientific gates remain intentionally closed.
+
+
+## Live deployment
+
+The public Streamlit dashboard is deployed to Railway production at:
+
+https://nfhs5-anaemia-severity-ml-production.up.railway.app
+
+Railway deployment verification:
+- source: `rjraunak04/nfhs5-anaemia-severity-ml`, branch `main`;
+- builder: root `Dockerfile`;
+- production environment;
+- healthcheck: `/_stcore/health`;
+- latest verified deployment status: `SUCCESS`;
+- Streamlit runtime bound to Railway's injected `PORT` (observed as port 8080 in production logs).
+
+The live deployment contains only public application code and disclosure-checked aggregate/synthetic assets. Restricted NFHS/DHS participant data remain outside the deployment.
