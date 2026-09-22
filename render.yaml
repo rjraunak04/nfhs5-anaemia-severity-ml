@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: nfhs5-anaemia-severity-ml
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    healthCheckPath: /_stcore/health
-    autoDeploy: true

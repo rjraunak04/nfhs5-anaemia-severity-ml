@@ -102,10 +102,7 @@ def scan_path(path: Path) -> list[str]:
     if path.name == ".env":
         problems.append(".env must never be tracked")
 
-    if path.suffix.casefold() not in TEXT_SUFFIXES and path.name not in {
-        "Dockerfile",
-        "requirements.txt",
-    }:
+    if path.suffix.casefold() not in TEXT_SUFFIXES and path.name != "Dockerfile":
         return problems
 
     full_path = ROOT / path
