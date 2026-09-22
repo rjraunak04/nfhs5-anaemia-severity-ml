@@ -8,6 +8,6 @@ With Python 3.12, install `python -m pip install -e ".[dev]"`, run `python -m py
 
 ## Streamlit Community Cloud
 
-After the repository visibility and disclosure review, open [share.streamlit.io](https://share.streamlit.io/), choose **Create app**, select `rjraunak04/nfhs5-anaemia-severity-ml`, branch `main`, entry point `app.py`, and Python **3.12**. The root `requirements.txt` installs the `[app]` extra. Wait for the app to load and verify the headline, the four tabs and the synthetic switch. Add the resulting verified live URL to the README and repository homepage.
+After the repository visibility and disclosure review, open [share.streamlit.io](https://share.streamlit.io/). If the repository is still private, first grant Streamlit Community Cloud access to this repository in the connected GitHub account. Choose **Create app**, select `rjraunak04/nfhs5-anaemia-severity-ml`, branch `main`, entry point `app.py`, and Python **3.12**. The root `requirements.txt` installs the `[app]` extra. Wait for the app to load and verify the headline, the four tabs and the synthetic switch. Add the resulting verified live URL to the README and repository homepage.
 
 If a cloud build fails, inspect the Streamlit build logs and check the selected Python version and `requirements.txt`. Do not upload the local dataset, `runs/` directory, checkpoint files or any `.joblib` artifact to the hosting service. A public dashboard of aggregate development results must not be advertised as clinical prediction or final test performance.
