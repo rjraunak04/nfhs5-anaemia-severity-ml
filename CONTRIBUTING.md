@@ -39,8 +39,10 @@ Recommended branch prefixes:
 
 Before opening a pull request, run:
 
-- `.\.venv\Scripts\python.exe -m ruff check src tests`
+- `.\.venv\Scripts\python.exe scripts/public_repo_audit.py`
+- `.\.venv\Scripts\python.exe -m ruff check src tests scripts app.py`
 - `.\.venv\Scripts\python.exe -m pytest --cov=anaemia_ml --cov-report=term-missing`
+- `docker build -t nfhs5-anaemia-severity-ml .`
 
 ## Notebook requirements
 
