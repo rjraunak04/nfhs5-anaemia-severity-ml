@@ -25,8 +25,11 @@ RESTRICTED_DIRECTORIES = {"runs", "artifacts", "checkpoints", "models", "mlruns"
 TEXT_SUFFIXES = {
     ".cff",
     ".json",
+    ".ipynb",
     ".md",
+    ".ps1",
     ".py",
+    ".sh",
     ".toml",
     ".txt",
     ".yaml",
@@ -34,6 +37,8 @@ TEXT_SUFFIXES = {
 }
 SECRET_PATTERNS = {
     "GitHub token": re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})"),
+    "OpenAI-style token": re.compile(r"sk-[A-Za-z0-9]{20,}"),
+    "Hugging Face token": re.compile(r"hf_[A-Za-z0-9]{20,}"),
     "AWS access key": re.compile(r"AKIA[0-9A-Z]{16}"),
     "Google API key": re.compile(r"AIza[0-9A-Za-z_-]{35}"),
     "Slack token": re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),
