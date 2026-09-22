@@ -1,6 +1,7 @@
 # NFHS-5 Anaemia Severity ML
 
-![Project status](https://img.shields.io/badge/status-active%20development-2563eb)
+![Project status](https://img.shields.io/badge/status-development%20release-2563eb)
+![CI](https://github.com/rjraunak04/nfhs5-anaemia-severity-ml/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
 ![Study](https://img.shields.io/badge/study-NFHS--5%20India-7c3aed)
 
@@ -223,7 +224,9 @@ Local data, model artifacts, checkpoints, caches, credentials, and virtual envir
 - [ ] Protocol-gated locked-test evaluation
 - [ ] Cluster-bootstrap confidence intervals
 - [ ] Subgroup and state-held-out analyses
-- [ ] Model card, reproducibility report, and manuscript release
+- [x] Development model card and reproducibility/results report
+- [x] Recruiter-facing aggregate dashboard and deployment configuration
+- [ ] Protocol-gated locked-test evaluation, bootstrap uncertainty, subgroup/state robustness, and manuscript release
 
 ## Day 2: calibration, SHAP, and dashboard
 
@@ -277,6 +280,20 @@ predictions, probabilities, labels, and survey weights. Calibration and SHAP
 remain development-stage evidence; final performance claims stay disabled
 until every locked-test gate in `configs/validation.yaml` is satisfied.
 
+## Day 3: recruiter/research release
+
+Day 3 packages the verified development evidence into a portfolio-ready release without weakening the study protocol. The default Streamlit view uses only disclosure-checked aggregate NFHS development/calibration results; a separate synthetic mode is retained for engineering demonstrations.
+
+Release assets:
+
+- [Development results](docs/development_results.md) — provenance, PSU-disjoint split sizes, grouped nested-CV estimates, calibration diagnostics and SHAP summary.
+- [Model card](docs/model_card.md) — intended use, non-clinical scope, limitations and release policy.
+- [Deployment guide](docs/deployment.md) — local and Streamlit Community Cloud verification steps.
+- [Release checklist](docs/release_checklist.md) — completed engineering gates and research gates that intentionally remain closed.
+- [Citation metadata](CITATION.cff) — software citation for this development release.
+
+The release deliberately does **not** include raw NFHS/DHS records, respondent-level predictions, fitted model binaries, local checkpoints, secrets or locked-test results. The locked test remains untouched until the protocol-defined final evaluation stage.
+
 ## Responsible use and limitations
 
 - This is a research project, not a medical device or diagnostic service.
@@ -292,7 +309,7 @@ Reporting is being aligned with [TRIPOD+AI](https://www.bmj.com/content/385/bmj-
 
 No final performance results, DOI, or publication claim is reported yet. This section will be updated only after the frozen pipeline completes the locked-test analysis and the outputs pass reproducibility checks.
 
-A `CITATION.cff`, release tag, model card, and paper citation will be added with the first reproducible research release.
+A development `CITATION.cff` and model card are included. A final research release tag, DOI and paper citation will be added only after the locked-test, uncertainty and robustness gates are complete.
 
 ## Author
 
