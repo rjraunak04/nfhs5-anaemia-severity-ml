@@ -1,19 +1,19 @@
 # NFHS-5 Anaemia Severity ML
 
-![Project status](https://img.shields.io/badge/status-development%20release-2563eb)
+![Project status](https://img.shields.io/badge/status-public%20engineering%20release-16a34a)
 ![CI](https://github.com/rjraunak04/nfhs5-anaemia-severity-ml/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
 ![Study](https://img.shields.io/badge/study-NFHS--5%20India-7c3aed)
 
 Survey-aware, leakage-resistant machine learning for four-class anaemia severity classification among women aged 15–49 using India’s National Family Health Survey (NFHS-5).
 
-> **Project status:** Active research and engineering development. Final model performance is intentionally not reported until the protocol-defined locked-test evaluation is complete.
+> **Project status:** The public software/portfolio release is complete and CI-gated. Confirmatory research validation remains intentionally separate: the protocol-defined locked test is still untouched, so no final or clinical performance claim is made.
 
 ## Project overview
 
 Anaemia is a major public-health concern in India, but identifying women at risk of severe disease from large household surveys is methodologically challenging. The data are imbalanced, observations are clustered by survey design, several variables are not valid predictors, and conventional random splitting can produce optimistic results.
 
-This project is building an end-to-end research pipeline that combines:
+This repository provides an end-to-end research-engineering pipeline that combines:
 
 - a theory-driven 40-variable NFHS-5 data contract;
 - survey weights, primary sampling units (PSUs), strata, states, and districts;
@@ -141,6 +141,15 @@ Class imbalance strategies will be compared rather than stacked blindly: no bala
 
 Long-running stages will write hash-validated checkpoints. A restarted Colab runtime may reuse only artifacts produced by the same dataset, feature schema, configuration, split, and pipeline version.
 
+### Public release verification
+
+The public repository is protected by automated disclosure and deployability gates:
+
+- `python scripts/public_repo_audit.py` rejects restricted data/model artifacts, common secret formats, row-level dashboard keys and local machine paths.
+- GitHub Actions runs the public audit, Ruff, the full pytest/coverage suite, notebook-cleanliness validation and a Docker image build.
+- [Public release status](docs/final_status.md) separates completed software engineering from intentionally gated confirmatory research.
+- [Deployment guide](docs/deployment.md) documents Streamlit Community Cloud; `render.yaml` and the root `Dockerfile` provide a container deployment path.
+
 ### Repository map
 
 ```text
@@ -186,6 +195,16 @@ anaemia-train --smoke --output-directory runs/day1-smoke
 
 This command validates the 40-column contract, builds PSU-disjoint partitions, compares Logistic Regression, Random Forest, and LightGBM with grouped nested CV, refits the development winner, and writes an integrity-checked model artifact. It does not evaluate calibration or locked-test data and does not produce a research performance claim.
 
+### Run the public dashboard with Docker
+
+```powershell
+python scripts/public_repo_audit.py
+docker build -t nfhs5-anaemia-severity-ml .
+docker run --rm -p 8501:8501 nfhs5-anaemia-severity-ml
+```
+
+Open `http://localhost:8501`. The image contains only the application, package code, configuration needed by the app and disclosure-checked aggregate demo/results data; restricted NFHS/DHS microdata and local model artifacts are excluded from the build context.
+
 Before starting feature work, create a branch from an updated `main` branch:
 
 ```powershell
@@ -214,19 +233,17 @@ Local data, model artifacts, checkpoints, caches, credentials, and virtual envir
 - [x] Exact 40-variable data contract
 - [x] Python package and development-tool foundation
 - [x] Executable data-contract validation and automated tests
-- [ ] Survey-weighted exploratory analysis
+- [ ] Confirmatory survey-weighted descriptive/uncertainty reporting
 - [x] Cohort and leakage-safe feature pipeline
 - [x] PSU-disjoint split generation
 - [x] Deterministic logistic-regression, random-forest, and LightGBM registry
 - [x] Nested grouped selection with resumable tuning checkpoints
 - [x] Group-cross-fitted temperature selection on calibration data
 - [x] Aggregate-only SHAP reporting on calibration observations
-- [ ] Protocol-gated locked-test evaluation
-- [ ] Cluster-bootstrap confidence intervals
-- [ ] Subgroup and state-held-out analyses
 - [x] Development model card and reproducibility/results report
 - [x] Recruiter-facing aggregate dashboard and deployment configuration
-- [ ] Protocol-gated locked-test evaluation, bootstrap uncertainty, subgroup/state robustness, and manuscript release
+- [x] Docker packaging and automated public-repository safety audit
+- [ ] Confirmatory research release: state-held-out validation, single-use locked test, cluster-bootstrap uncertainty, subgroup/geographic robustness, and manuscript finalization
 
 ## Day 2: calibration, SHAP, and dashboard
 
@@ -286,6 +303,7 @@ Day 3 packages the verified development evidence into a portfolio-ready release 
 
 Release assets:
 
+- [Final public-release status](docs/final_status.md) — what is complete for software/recruiter review and what remains intentionally research-gated.
 - [Development results](docs/development_results.md) — provenance, PSU-disjoint split sizes, grouped nested-CV estimates, calibration diagnostics and SHAP summary.
 - [Model card](docs/model_card.md) — intended use, non-clinical scope, limitations and release policy.
 - [Deployment guide](docs/deployment.md) — local and Streamlit Community Cloud verification steps.
@@ -315,4 +333,4 @@ A development `CITATION.cff` and model card are included. A final research relea
 
 **Ankur Kumar Jaiswal** · [GitHub profile](https://github.com/rjraunak04)
 
-Code licensing will be finalized before public release. NFHS/DHS data remain governed by the data provider’s access agreement.
+No open-source software license is granted by this repository at present; public visibility is for research transparency and portfolio review and does not by itself grant reuse rights. NFHS/DHS data remain governed by the data provider’s access agreement.
