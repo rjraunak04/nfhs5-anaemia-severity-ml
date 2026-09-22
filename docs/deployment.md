@@ -28,3 +28,10 @@ After connecting Railway to GitHub:
 7. Add the verified live URL to the repository homepage and README only after this check.
 
 Railway can auto-deploy future pushes from the connected GitHub branch. Do not add NFHS/DHS raw data, model binaries, local checkpoints, or secrets as deployment files or environment variables.
+
+
+## Current production deployment
+
+Verified Railway production URL: https://nfhs5-anaemia-severity-ml-production.up.railway.app
+
+The latest production deployment completed successfully with the root Dockerfile, dynamic Railway `PORT` binding, and `/_stcore/health` configured as the service healthcheck.

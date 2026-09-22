@@ -7,7 +7,13 @@
 
 Survey-aware, leakage-resistant machine learning for four-class anaemia severity classification among women aged 15–49 using India’s National Family Health Survey (NFHS-5).
 
-> **Project status:** The public software/portfolio release is complete and CI-gated. Confirmatory research validation remains intentionally separate: the protocol-defined locked test is still untouched, so no final or clinical performance claim is made.
+> **Project status:** The public software/portfolio release is complete, CI-gated, and deployed on Railway. Confirmatory research validation remains intentionally separate: the protocol-defined locked test is still untouched, so no final or clinical performance claim is made.
+
+## Live demo
+
+**Railway production dashboard:** https://nfhs5-anaemia-severity-ml-production.up.railway.app
+
+The hosted app serves disclosure-checked aggregate development/calibration evidence and a separate synthetic engineering demo. It does not expose respondent-level NFHS/DHS records, fitted model binaries, row-level predictions, or locked-test results.
 
 ## Project overview
 
