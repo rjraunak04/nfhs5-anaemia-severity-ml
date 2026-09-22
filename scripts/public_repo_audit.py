@@ -40,7 +40,7 @@ SECRET_PATTERNS = {
     "private key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 }
 LOCAL_PATH_PATTERNS = {
-    "Windows user path": re.compile(r"[A-Za-z]:\\\\Users\\\\[^\\\s]+"),
+    "Windows user path": re.compile(r"[A-Za-z]:\\Users\\[^\\\s]+"),
 }
 FORBIDDEN_DEMO_KEYS = {
     "caseid",
