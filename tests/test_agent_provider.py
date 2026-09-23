@@ -172,3 +172,39 @@ def test_env_enabled_fallback_surfaces_safe_telemetry(monkeypatch) -> None:
     assert response.metadata["planner_prompt_tokens"] == 18
     assert response.metadata["planner_completion_tokens"] == 3
     assert response.metadata["evidence_only"] is True
+
+
+
+def test_authenticated_endpoint_must_use_https() -> None:
+    with pytest.raises(ValueError, match="must use HTTPS"):
+        HttpPlannerConfig(
+            endpoint="http://planner.example.test/intent",
+            api_key="unit-test-key",
+        )
+
+
+def test_malformed_confidence_fails_closed(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "anaemia_ml.agents.provider.urlopen",
+        lambda *_args, **_kwargs: FakeResponse(
+            {"intent": "release_readiness", "confidence": 4.2}
+        ),
+    )
+    planner = HttpIntentPlanner(
+        HttpPlannerConfig(endpoint="https://planner.example.test/intent")
+    )
+
+    with pytest.raises(ExternalPlannerError, match="failed safely"):
+        planner.plan("Can this artifact ship?")
+
+
+def test_invalid_numeric_environment_config_fails_safely(monkeypatch) -> None:
+    monkeypatch.setenv("ANAEMIA_AGENT_LLM_ENABLED", "true")
+    monkeypatch.setenv(
+        "ANAEMIA_AGENT_LLM_ENDPOINT",
+        "https://planner.example.test/intent",
+    )
+    monkeypatch.setenv("ANAEMIA_AGENT_LLM_TIMEOUT_SECONDS", "not-a-number")
+
+    with pytest.raises(ExternalPlannerError, match="configuration is invalid"):
+        build_planner_from_env()
