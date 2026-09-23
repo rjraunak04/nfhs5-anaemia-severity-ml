@@ -85,13 +85,13 @@ Aggregate SHAP analysis highlighted BMI, age, and education among the leading mo
 
 ## Agentic Research Copilot
 
-The live dashboard includes a small policy-gated research copilot for questions such as model comparison, selection rationale, calibration, SHAP and final-test readiness.
+The live dashboard includes a policy-gated research copilot for model comparison, selection rationale, calibration, SHAP, release readiness and next-experiment planning.
 
-The copilot follows a deliberately constrained architecture:
+The V2 copilot follows a deliberately constrained architecture:
 
-`natural-language request → planner → approved tool → governance policy → evidence-backed response`
+`request → hybrid planner → approved intent → deterministic tool → policy gate → execution trace → evidence-backed response`
 
-Its public deployment uses an auditable local planner, while the planner interface can accept an external LLM later without changing the ML tools or safety rules. External planners are restricted to a closed set of approved intents, and the agent cannot unlock the final test or access respondent-level data.
+Known requests use high-confidence local routing; an optional LLM can act only as a fallback planner for ambiguous requests. Planner decisions are validated against a closed intent set, every response exposes a safe execution trace, and automated release checks remain read-only. The agent cannot unlock the final test or access respondent-level data.
 
 ## Tech stack
 
