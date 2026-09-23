@@ -25,7 +25,7 @@ class FakeResponse:
     def __init__(self, payload: dict) -> None:
         self.payload = payload
 
-    def __enter__(self) -> "FakeResponse":
+    def __enter__(self) -> FakeResponse:
         return self
 
     def __exit__(self, *_args: object) -> None:
