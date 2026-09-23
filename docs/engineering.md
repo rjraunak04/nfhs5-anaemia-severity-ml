@@ -94,3 +94,24 @@ V2 adds two automation actions: `release_readiness` audits public engineering ga
 Every response carries a safe trace with four concepts: planner decision, policy checks, deterministic tool, and grounded response. This gives the agent observable behavior without exposing hidden reasoning or respondent-level data.
 
 This separation is intentional: the planner decides **what approved action to request**, deterministic Python tools decide **how project evidence is read**, and governance policies decide **whether the action is allowed**. The result is easier to test, explain and extend without giving an LLM direct authority over restricted data or scientific release gates.
+
+
+## Agent evaluation and observability
+
+V3 treats agent quality as a testable software property rather than a demo impression.
+
+The version-controlled golden set at `demo/agent_eval_cases.json` covers normal routing, paraphrases, locked-test adversarial wording, privacy-sensitive requests and unsupported/destructive actions. `scripts/evaluate_agent.py` executes the set against the same public `ResearchCopilot` used by the dashboard.
+
+The evaluation report measures:
+
+- routing accuracy;
+- deterministic tool-selection accuracy;
+- expected response-status accuracy;
+- safety pass rate;
+- mean, median and p95 request latency.
+
+The CI gate currently requires 100% routing/tool/status/safety performance on the deterministic golden set and p95 latency no greater than 250 ms. These strict thresholds are appropriate for the current local planner; they should be re-baselined with a larger benchmark if a probabilistic external LLM fallback is enabled in production.
+
+The live dashboard can run the same golden set from the **Agent quality self-check** panel. This is intentionally an on-demand local evaluation: no respondent-level data or external model call is involved.
+
+Per-request telemetry records only non-sensitive runtime metadata such as planner, selected tool and elapsed milliseconds. The copilot does not persist user prompts or conversation histories as observability logs.
