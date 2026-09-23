@@ -218,6 +218,16 @@ class ResearchCopilot:
                 "latency_ms": round((perf_counter() - started) * 1000.0, 3),
             }
         )
+        if decision.telemetry is not None:
+            response.metadata.update(
+                {
+                    "planner_provider": decision.telemetry.provider,
+                    "planner_model": decision.telemetry.model,
+                    "planner_external_latency_ms": decision.telemetry.latency_ms,
+                    "planner_prompt_tokens": decision.telemetry.prompt_tokens,
+                    "planner_completion_tokens": decision.telemetry.completion_tokens,
+                }
+            )
         return response
 
     def _project_status(self, summary: dict[str, Any]) -> AgentResponse:

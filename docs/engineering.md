@@ -115,3 +115,45 @@ The CI gate currently requires 100% routing/tool/status/safety performance on th
 The live dashboard can run the same golden set from the **Agent quality self-check** panel. This is intentionally an on-demand local evaluation: no respondent-level data or external model call is involved.
 
 Per-request telemetry records only non-sensitive runtime metadata such as planner, selected tool and elapsed milliseconds. The copilot does not persist user prompts or conversation histories as observability logs.
+
+
+## Optional external LLM fallback
+
+V4 adds a provider-agnostic HTTP intent gateway for ambiguous natural-language requests. The external model is deliberately kept outside the scientific evidence path.
+
+Outbound payload:
+
+```json
+{
+  "query": "<ambiguous user request>",
+  "model": "<configured router label>",
+  "allowed_intents": ["project_status", "..."]
+}
+```
+
+No aggregate project summary, NFHS/DHS row, model metric, validation config, fitted model, SHAP evidence or final-test artifact is transmitted to the external planner.
+
+The gateway must return an approved `intent`, optional `confidence`, and may return provider/model/token-usage metadata. The selected intent is revalidated against the closed `AgentIntent` enum before project tools can run.
+
+Operational safeguards:
+
+- deterministic routing always runs first;
+- external fallback is opt-in and disabled by default;
+- provider calls have a short configurable timeout;
+- repeated failures open an in-process circuit breaker;
+- invalid JSON or unapproved intents fail closed;
+- provider failures never trigger a project tool;
+- only non-sensitive latency/token metadata is surfaced;
+- prompts and conversation history are not persisted as telemetry.
+
+Live configuration is environment-only:
+
+- `ANAEMIA_AGENT_LLM_ENABLED`
+- `ANAEMIA_AGENT_LLM_ENDPOINT`
+- `ANAEMIA_AGENT_LLM_MODEL`
+- `ANAEMIA_AGENT_LLM_API_KEY`
+- `ANAEMIA_AGENT_LLM_TIMEOUT_SECONDS`
+- `ANAEMIA_AGENT_LLM_FAILURE_THRESHOLD`
+- `ANAEMIA_AGENT_LLM_COOLDOWN_SECONDS`
+
+The repository intentionally contains no provider secret. With the feature disabled, production behaves exactly like the deterministic V3 copilot. The golden evaluation suite also remains deterministic so CI quality results do not depend on network availability or a third-party model.

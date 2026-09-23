@@ -87,11 +87,11 @@ Aggregate SHAP analysis highlighted BMI, age, and education among the leading mo
 
 The live dashboard includes a policy-gated research copilot for model comparison, selection rationale, calibration, SHAP, release readiness and next-experiment planning.
 
-The V2 copilot follows a deliberately constrained architecture:
+The copilot follows a deliberately constrained architecture:
 
-`request → hybrid planner → approved intent → deterministic tool → policy gate → execution trace → evidence-backed response`
+`request → deterministic router → optional LLM fallback → approved intent → deterministic tool → policy gate → execution trace → evidence-backed response`
 
-Known requests use high-confidence local routing; an optional LLM can act only as a fallback planner for ambiguous requests. Planner decisions are validated against a closed intent set, every response exposes a safe execution trace, and automated release checks remain read-only. V3 adds a version-controlled 20-case golden evaluation suite, CI quality thresholds, and request-latency observability. The agent cannot unlock the final test or access respondent-level data.
+Known requests stay local. V4 adds a provider-agnostic external fallback for ambiguous requests with a short timeout, closed-intent validation, an in-process circuit breaker, fail-closed behavior, and non-persistent token/latency telemetry. The external planner receives only the user query and allowed intent names—never NFHS rows, project evidence, model artifacts, or validation data. V3's 20-case golden evaluation suite and CI quality gate remain active.
 
 ## Tech stack
 

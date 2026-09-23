@@ -30,6 +30,18 @@ class AgentRequest(BaseModel):
     intent: AgentIntent | None = None
 
 
+class PlannerTelemetry(BaseModel):
+    """Non-sensitive telemetry returned by an optional external planner."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: str
+    model: str | None = None
+    latency_ms: float = Field(ge=0.0)
+    prompt_tokens: int | None = Field(default=None, ge=0)
+    completion_tokens: int | None = Field(default=None, ge=0)
+
+
 class PlanDecision(BaseModel):
     """Auditable planner decision before any tool is executed."""
 
@@ -39,6 +51,7 @@ class PlanDecision(BaseModel):
     planner: str
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str = Field(min_length=1, max_length=300)
+    telemetry: PlannerTelemetry | None = None
 
 
 class EvidenceItem(BaseModel):
