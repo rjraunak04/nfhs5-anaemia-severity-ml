@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nfhs5-anaemia-severity-ml"
-version = "0.2.0"
+version = "0.3.0"
 description = "Survey-aware machine learning for multiclass anaemia severity classification using NFHS-5 India."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

@@ -9,6 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from anaemia_ml.agents import AgentRequest, ResearchCopilot
+from anaemia_ml.agents.evaluation import evaluate_copilot, load_eval_cases
 from anaemia_ml.agents.orchestrator import IntentRoutingError
 from anaemia_ml.dashboard import (
     DashboardDataError,
@@ -20,6 +21,7 @@ ROOT = Path(__file__).parent
 DEFAULT_SUMMARY = ROOT / "demo" / "nfhs_development_summary.json"
 SYNTHETIC_SUMMARY = ROOT / "demo" / "portfolio_summary.json"
 VALIDATION_CONFIG = ROOT / "configs" / "validation.yaml"
+AGENT_EVAL_CASES = ROOT / "demo" / "agent_eval_cases.json"
 
 st.set_page_config(
     page_title="NFHS-5 Anaemia Severity ML",
@@ -215,8 +217,9 @@ with safeguards_tab:
 with copilot_tab:
     st.subheader("Policy-gated Research Copilot")
     st.caption(
-        "Ask about model comparison, model selection, calibration, SHAP, project status, "
-        "or final-test readiness. The copilot can use only disclosure-checked aggregate evidence."
+        "Ask about model comparison, selection, calibration, SHAP, release readiness, "
+        "next experiments, or final-test readiness. The copilot uses only disclosure-checked "
+        "aggregate evidence."
     )
 
     example = st.selectbox(
@@ -280,7 +283,8 @@ with copilot_tab:
             if isinstance(planner_confidence, int | float):
                 st.caption(
                     f"Planner: {planner_name} · confidence: {planner_confidence:.2f} · "
-                    f"tool: {response.metadata.get('tool', 'unknown')}"
+                    f"tool: {response.metadata.get('tool', 'unknown')} · "
+                    f"latency: {float(response.metadata.get('latency_ms', 0.0)):.1f} ms"
                 )
 
             if response.trace:
@@ -313,6 +317,38 @@ with copilot_tab:
             and does not provide diagnosis, treatment advice, or autonomous clinical decisions.
             """
         )
+
+    with st.expander("Agent quality self-check"):
+        st.caption(
+            "Runs the version-controlled golden evaluation set locally. "
+            "No external model call or respondent-level data is used."
+        )
+        if st.button("Run agent evaluation", key="agent_eval_run"):
+            eval_copilot = ResearchCopilot(
+                summary_path=DEFAULT_SUMMARY,
+                validation_path=VALIDATION_CONFIG,
+            )
+            report = evaluate_copilot(
+                eval_copilot,
+                load_eval_cases(AGENT_EVAL_CASES),
+            )
+            quality = st.columns(5)
+            quality[0].metric("Cases", f"{report.passed_cases}/{report.total_cases}")
+            quality[1].metric("Routing", f"{report.routing_accuracy:.0%}")
+            quality[2].metric("Tools", f"{report.tool_accuracy:.0%}")
+            quality[3].metric("Safety", f"{report.safety_pass_rate:.0%}")
+            quality[4].metric("p95 latency", f"{report.latency_p95_ms:.1f} ms")
+
+            failed = [result for result in report.results if not result.passed]
+            if failed:
+                st.error(f"{len(failed)} golden cases failed.")
+                st.dataframe(
+                    pd.DataFrame([item.model_dump() for item in failed]),
+                    hide_index=True,
+                    use_container_width=True,
+                )
+            else:
+                st.success("All golden agent cases passed.")
 
 st.divider()
 st.caption(
