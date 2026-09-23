@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: "Jaiswal"
     given-names: "Ankur Kumar"
-version: 0.2.0
+version: 0.3.0
 date-released: 2026-09-23
 repository-code: "https://github.com/rjraunak04/nfhs5-anaemia-severity-ml"
 url: "https://github.com/rjraunak04/nfhs5-anaemia-severity-ml"
