@@ -72,7 +72,9 @@ Architecture:
 ```text
 User question
     ↓
-Planner
+HybridPlanner
+    ├── high-confidence RuleBasedPlanner
+    └── optional external LLM fallback
     ↓
 Closed AgentIntent enum
     ↓
@@ -80,11 +82,15 @@ Approved deterministic tool
     ↓
 Disclosure / governance policy
     ↓
+Execution trace
+    ↓
 Structured response + evidence source + warnings
 ```
 
-The public deployment uses `RuleBasedPlanner`, which keeps the demo dependency-free and auditable. `CallablePlanner` is the model-agnostic adapter for a future LLM planner. Even when an external model chooses an action, its output must validate against the closed intent enum before any tool can run.
+The live deployment defaults to `HybridPlanner` without an external fallback. Known requests therefore stay local and deterministic. `CallablePlanner` is the model-agnostic adapter for a future LLM provider; when configured, it is consulted only after deterministic routing cannot resolve the request. Its output must still validate against the closed intent enum.
 
-The current approved actions are project status, model comparison, model-selection explanation, calibration status, aggregate SHAP explanation and final-test readiness. The last action is deliberately read-only and always preserves the existing final-test lock.
+V2 adds two automation actions: `release_readiness` audits public engineering gates from aggregate evidence, while `next_experiment` produces an ordered protocol-safe research plan. Both are read-only. They cannot retrain models, mutate research artifacts or open the locked final test.
 
-This separation is intentional: the planner decides **what approved action to request**, deterministic Python tools decide **how project evidence is read**, and governance policies decide **whether the action is allowed**. This makes the agent easier to test, explain in an interview and extend without giving an LLM direct authority over restricted data or scientific release gates.
+Every response carries a safe trace with four concepts: planner decision, policy checks, deterministic tool, and grounded response. This gives the agent observable behavior without exposing hidden reasoning or respondent-level data.
+
+This separation is intentional: the planner decides **what approved action to request**, deterministic Python tools decide **how project evidence is read**, and governance policies decide **whether the action is allowed**. The result is easier to test, explain and extend without giving an LLM direct authority over restricted data or scientific release gates.
