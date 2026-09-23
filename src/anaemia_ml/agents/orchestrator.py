@@ -10,6 +10,7 @@ from anaemia_ml.agents.policies import (
     enforce_disclosure_boundary,
     enforce_public_intent,
 )
+from anaemia_ml.agents.planner import Planner, RuleBasedPlanner
 from anaemia_ml.agents.schemas import (
     AgentIntent,
     AgentRequest,
@@ -78,13 +79,15 @@ class ResearchCopilot:
         *,
         summary_path: str | Path,
         validation_path: str | Path,
+        planner: Planner | None = None,
     ) -> None:
         self.summary_path = Path(summary_path)
         self.validation_path = Path(validation_path)
+        self.planner = planner or RuleBasedPlanner()
 
     def run(self, request: AgentRequest) -> AgentResponse:
         """Route, execute deterministic tools, and return an evidence-backed response."""
-        intent = request.intent or route_intent(request.query)
+        intent = request.intent or self.planner.plan(request.query)
         enforce_public_intent(intent)
 
         summary = load_public_evidence(self.summary_path)
@@ -98,7 +101,15 @@ class ResearchCopilot:
             AgentIntent.EXPLAIN_FEATURES: self._explain_features,
             AgentIntent.CHECK_FINAL_TEST_READINESS: self._final_test_readiness,
         }
-        return handlers[intent](summary)
+        response = handlers[intent](summary)
+        response.metadata.update(
+            {
+                "planner": self.planner.name,
+                "public_mode": True,
+                "evidence_only": True,
+            }
+        )
+        return response
 
     def _project_status(self, summary: dict[str, Any]) -> AgentResponse:
         workflow = summary["workflow"]
