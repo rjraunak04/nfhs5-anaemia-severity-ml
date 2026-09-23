@@ -51,6 +51,7 @@ _INTENT_PATTERNS: tuple[tuple[AgentIntent, tuple[str, ...]], ...] = (
         AgentIntent.NEXT_EXPERIMENT,
         (
             "next experiment",
+            "experiment should i run next",
             "what should i run next",
             "next research step",
             "what to do next",
