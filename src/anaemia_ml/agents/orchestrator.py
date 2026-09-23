@@ -73,7 +73,14 @@ _INTENT_PATTERNS: tuple[tuple[AgentIntent, tuple[str, ...]], ...] = (
     ),
     (
         AgentIntent.COMPARE_MODELS,
-        ("compare model", "model comparison", "which models", "macro f1"),
+        (
+            "compare model",
+            "compare the development models",
+            "compare development models",
+            "model comparison",
+            "which models",
+            "macro f1",
+        ),
     ),
     (
         AgentIntent.EXPLAIN_SELECTION,
