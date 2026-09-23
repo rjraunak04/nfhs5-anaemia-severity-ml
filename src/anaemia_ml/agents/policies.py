@@ -19,6 +19,8 @@ PUBLIC_ALLOWED_INTENTS = frozenset(
         AgentIntent.CALIBRATION_STATUS,
         AgentIntent.EXPLAIN_FEATURES,
         AgentIntent.CHECK_FINAL_TEST_READINESS,
+        AgentIntent.RELEASE_READINESS,
+        AgentIntent.NEXT_EXPERIMENT,
     }
 )
 
