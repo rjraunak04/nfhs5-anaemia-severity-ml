@@ -8,7 +8,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from anaemia_ml.agents import AgentRequest, ResearchCopilot
+from anaemia_ml.agents import (
+    AgentRequest,
+    ExternalPlannerError,
+    ResearchCopilot,
+    build_planner_from_env,
+    external_planner_enabled,
+)
 from anaemia_ml.agents.evaluation import evaluate_copilot, load_eval_cases
 from anaemia_ml.agents.orchestrator import IntentRoutingError
 from anaemia_ml.dashboard import (
@@ -216,10 +222,11 @@ with safeguards_tab:
 
 with copilot_tab:
     st.subheader("Policy-gated Research Copilot")
+    fallback_mode = "enabled for ambiguous requests" if external_planner_enabled() else "disabled"
     st.caption(
         "Ask about model comparison, selection, calibration, SHAP, release readiness, "
         "next experiments, or final-test readiness. The copilot uses only disclosure-checked "
-        "aggregate evidence."
+        f"aggregate evidence. External LLM fallback: {fallback_mode}."
     )
 
     example = st.selectbox(
@@ -244,13 +251,15 @@ with copilot_tab:
     )
 
     if st.button("Run evidence check", type="primary", key="copilot_run"):
-        copilot = ResearchCopilot(
-            summary_path=DEFAULT_SUMMARY,
-            validation_path=VALIDATION_CONFIG,
-        )
         try:
+            planner = build_planner_from_env()
+            copilot = ResearchCopilot(
+                summary_path=DEFAULT_SUMMARY,
+                validation_path=VALIDATION_CONFIG,
+                planner=planner,
+            )
             response = copilot.run(AgentRequest(query=query))
-        except IntentRoutingError as error:
+        except (IntentRoutingError, ExternalPlannerError) as error:
             st.warning(str(error))
         else:
             if response.status == "ok":
@@ -281,11 +290,25 @@ with copilot_tab:
             planner_name = response.metadata.get("planner", "unknown")
             planner_confidence = response.metadata.get("planner_confidence")
             if isinstance(planner_confidence, int | float):
-                st.caption(
+                caption = (
                     f"Planner: {planner_name} · confidence: {planner_confidence:.2f} · "
                     f"tool: {response.metadata.get('tool', 'unknown')} · "
                     f"latency: {float(response.metadata.get('latency_ms', 0.0)):.1f} ms"
                 )
+                if response.metadata.get("planner_provider"):
+                    caption += (
+                        f" · provider: {response.metadata['planner_provider']}"
+                        f" · external latency: "
+                        f"{float(response.metadata.get('planner_external_latency_ms', 0.0)):.1f} ms"
+                    )
+                    prompt_tokens = response.metadata.get("planner_prompt_tokens")
+                    completion_tokens = response.metadata.get("planner_completion_tokens")
+                    if prompt_tokens is not None or completion_tokens is not None:
+                        caption += (
+                            f" · tokens: {int(prompt_tokens or 0)} in / "
+                            f"{int(completion_tokens or 0)} out"
+                        )
+                st.caption(caption)
 
             if response.trace:
                 with st.expander("Agent execution trace"):
@@ -312,9 +335,11 @@ with copilot_tab:
             5. The execution trace exposes planner, policy, tool and response stages.
             6. Release readiness and next-experiment planning are automated but remain read-only.
 
-            An optional external LLM can be used only as a fallback planner; it still cannot create
-            new tool permissions. The public copilot does not read respondent-level NFHS/DHS rows
-            and does not provide diagnosis, treatment advice, or autonomous clinical decisions.
+            An optional external LLM can be used only as a fallback planner; it receives only the
+            ambiguous query plus the closed allowed-intent list. Timeout, circuit-breaker and
+            fail-closed behavior prevent provider failures from reaching project tools. The public
+            copilot does not read respondent-level NFHS/DHS rows and does not provide diagnosis,
+            treatment advice, or autonomous clinical decisions.
             """
         )
 
