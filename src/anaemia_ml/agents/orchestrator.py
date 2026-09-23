@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from anaemia_ml.agents.planner import HybridPlanner, Planner
@@ -126,6 +127,7 @@ class ResearchCopilot:
 
     def run(self, request: AgentRequest) -> AgentResponse:
         """Plan, enforce policy, execute tools, and return a traced response."""
+        started = perf_counter()
         if request.intent is None:
             decision = self.planner.plan(request.query)
         else:
@@ -206,6 +208,7 @@ class ResearchCopilot:
                 "public_mode": True,
                 "evidence_only": True,
                 "tool": _TOOL_NAMES[intent],
+                "latency_ms": round((perf_counter() - started) * 1000.0, 3),
             }
         )
         return response
