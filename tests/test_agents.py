@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from anaemia_ml.agents.orchestrator import IntentRoutingError, ResearchCopilot, route_intent
+from anaemia_ml.agents.planner import CallablePlanner
 from anaemia_ml.agents.schemas import AgentIntent, AgentRequest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,3 +91,27 @@ def test_explicit_intent_bypasses_text_router_but_not_policy(copilot: ResearchCo
     response = copilot.run(request)
     assert response.intent is AgentIntent.PROJECT_STATUS
     assert response.status == "ok"
+
+
+def test_external_planner_is_constrained_to_approved_intents() -> None:
+    planner = CallablePlanner(lambda _query: "compare_models", name="test_llm")
+    copilot = ResearchCopilot(
+        summary_path=SUMMARY,
+        validation_path=VALIDATION,
+        planner=planner,
+    )
+    response = copilot.run(AgentRequest(query="Use the external planner"))
+    assert response.intent is AgentIntent.COMPARE_MODELS
+    assert response.metadata["planner"] == "test_llm"
+    assert response.metadata["evidence_only"] is True
+
+
+def test_external_planner_cannot_invent_unapproved_action() -> None:
+    planner = CallablePlanner(lambda _query: "diagnose_patient", name="test_llm")
+    copilot = ResearchCopilot(
+        summary_path=SUMMARY,
+        validation_path=VALIDATION,
+        planner=planner,
+    )
+    with pytest.raises(ValueError):
+        copilot.run(AgentRequest(query="Do something unsafe"))
