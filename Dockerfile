@@ -13,6 +13,7 @@ RUN python -m pip install --upgrade pip \
     && python -m pip install ".[app]"
 
 COPY app.py ./app.py
+COPY configs ./configs
 COPY demo ./demo
 COPY .streamlit ./.streamlit
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from anaemia_ml.agents.orchestrator import IntentRoutingError, ResearchCopilot, route_intent
-from anaemia_ml.agents.planner import CallablePlanner
+from anaemia_ml.agents.planner import CallablePlanner, HybridPlanner
 from anaemia_ml.agents.schemas import AgentIntent, AgentRequest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -115,3 +115,69 @@ def test_external_planner_cannot_invent_unapproved_action() -> None:
     )
     with pytest.raises(ValueError):
         copilot.run(AgentRequest(query="Do something unsafe"))
+
+
+
+def test_release_readiness_audits_public_engineering_gates(copilot: ResearchCopilot) -> None:
+    response = copilot.run(AgentRequest(query="Is the portfolio release ready?"))
+    assert response.intent is AgentIntent.RELEASE_READINESS
+    assert response.status == "ok"
+    assert response.metadata["portfolio_release_ready"] is True
+    assert response.metadata["confirmatory_release_ready"] is False
+    assert all("PASS" in item.value for item in response.evidence)
+
+
+def test_next_experiment_plan_preserves_locked_test_boundary(copilot: ResearchCopilot) -> None:
+    response = copilot.run(AgentRequest(query="What experiment should I run next?"))
+    assert response.intent is AgentIntent.NEXT_EXPERIMENT
+    assert response.status == "needs_review"
+    labels = [item.label for item in response.evidence]
+    assert any("state-held-out validation" in label for label in labels)
+    assert any("single-use locked-test evaluation" in label for label in labels)
+    assert any("not authorization" in warning for warning in response.warnings)
+
+
+def test_response_contains_auditable_execution_trace(copilot: ResearchCopilot) -> None:
+    response = copilot.run(AgentRequest(query="Compare models"))
+    assert [step.stage for step in response.trace] == [
+        "plan",
+        "policy",
+        "policy",
+        "tool",
+        "response",
+    ]
+    assert response.metadata["planner"].startswith("hybrid:")
+    assert response.metadata["tool"] == "compare_development_models"
+    assert 0.0 <= response.metadata["planner_confidence"] <= 1.0
+
+
+def test_hybrid_planner_skips_fallback_for_known_request() -> None:
+    calls = {"count": 0}
+
+    def fallback(_query: str) -> str:
+        calls["count"] += 1
+        return "project_status"
+
+    planner = HybridPlanner(CallablePlanner(fallback, name="test_llm"))
+    decision = planner.plan("Compare models")
+    assert decision.intent is AgentIntent.COMPARE_MODELS
+    assert decision.planner == "hybrid:rule_based"
+    assert calls["count"] == 0
+
+
+def test_hybrid_planner_uses_fallback_only_for_ambiguous_request() -> None:
+    planner = HybridPlanner(
+        CallablePlanner(lambda _query: "release_readiness", name="test_llm")
+    )
+    decision = planner.plan("Can this artifact ship?")
+    assert decision.intent is AgentIntent.RELEASE_READINESS
+    assert decision.planner == "hybrid:test_llm"
+    assert "fallback" in decision.reason.casefold()
+
+
+def test_hybrid_fallback_cannot_create_unapproved_intent() -> None:
+    planner = HybridPlanner(
+        CallablePlanner(lambda _query: "delete_repository", name="test_llm")
+    )
+    with pytest.raises(ValueError):
+        planner.plan("Do something outside the supported vocabulary")

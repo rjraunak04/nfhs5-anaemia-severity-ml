@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from anaemia_ml.agents.planner import Planner, RuleBasedPlanner
+from anaemia_ml.agents.planner import HybridPlanner, Planner
 from anaemia_ml.agents.policies import (
     enforce_disclosure_boundary,
     enforce_public_intent,
@@ -16,6 +16,8 @@ from anaemia_ml.agents.schemas import (
     AgentRequest,
     AgentResponse,
     EvidenceItem,
+    PlanDecision,
+    TraceStep,
 )
 from anaemia_ml.agents.tools import (
     calibration_evidence,
@@ -23,6 +25,8 @@ from anaemia_ml.agents.tools import (
     final_test_gate_names,
     load_public_evidence,
     model_comparison,
+    next_experiment_plan,
+    release_readiness,
     selected_model,
 )
 
@@ -33,8 +37,30 @@ class IntentRoutingError(ValueError):
 
 _INTENT_PATTERNS: tuple[tuple[AgentIntent, tuple[str, ...]], ...] = (
     (
+        AgentIntent.RELEASE_READINESS,
+        (
+            "portfolio release",
+            "release readiness",
+            "software release",
+            "deploy ready",
+            "deployment ready",
+            "portfolio ready",
+        ),
+    ),
+    (
+        AgentIntent.NEXT_EXPERIMENT,
+        (
+            "next experiment",
+            "experiment should i run next",
+            "what should i run next",
+            "next research step",
+            "what to do next",
+            "next validation",
+        ),
+    ),
+    (
         AgentIntent.CHECK_FINAL_TEST_READINESS,
-        ("final test", "locked test", "release ready", "final evaluation"),
+        ("final test", "locked test", "final evaluation", "confirmatory ready"),
     ),
     (
         AgentIntent.CALIBRATION_STATUS,
@@ -66,13 +92,26 @@ def route_intent(query: str) -> AgentIntent:
         if any(phrase in normalized for phrase in phrases):
             return intent
     raise IntentRoutingError(
-        "I can currently explain project status, compare models, explain model selection, "
-        "summarize calibration/SHAP, or check locked-test readiness."
+        "I can explain project status, compare models, explain model selection, summarize "
+        "calibration/SHAP, audit portfolio release readiness, plan the next experiment, "
+        "or check locked-test readiness."
     )
 
 
+_TOOL_NAMES: dict[AgentIntent, str] = {
+    AgentIntent.PROJECT_STATUS: "read_project_status",
+    AgentIntent.COMPARE_MODELS: "compare_development_models",
+    AgentIntent.EXPLAIN_SELECTION: "explain_model_selection",
+    AgentIntent.CALIBRATION_STATUS: "read_calibration_evidence",
+    AgentIntent.EXPLAIN_FEATURES: "read_aggregate_shap",
+    AgentIntent.CHECK_FINAL_TEST_READINESS: "read_final_test_gates",
+    AgentIntent.RELEASE_READINESS: "audit_release_readiness",
+    AgentIntent.NEXT_EXPERIMENT: "build_next_experiment_plan",
+}
+
+
 class ResearchCopilot:
-    """Small policy-gated agent that reasons only over approved aggregate evidence."""
+    """Policy-gated agent that reasons only over approved aggregate evidence."""
 
     def __init__(
         self,
@@ -83,15 +122,53 @@ class ResearchCopilot:
     ) -> None:
         self.summary_path = Path(summary_path)
         self.validation_path = Path(validation_path)
-        self.planner = planner or RuleBasedPlanner()
+        self.planner = planner or HybridPlanner()
 
     def run(self, request: AgentRequest) -> AgentResponse:
-        """Route, execute deterministic tools, and return an evidence-backed response."""
-        intent = request.intent or self.planner.plan(request.query)
+        """Plan, enforce policy, execute tools, and return a traced response."""
+        if request.intent is None:
+            decision = self.planner.plan(request.query)
+        else:
+            decision = PlanDecision(
+                intent=request.intent,
+                planner="explicit_intent",
+                confidence=1.0,
+                reason="Caller supplied an explicit approved intent.",
+            )
+
+        intent = decision.intent
+        trace = [
+            TraceStep(
+                stage="plan",
+                name=decision.planner,
+                status="ok",
+                detail=(
+                    f"Selected {intent.value} with confidence "
+                    f"{decision.confidence:.2f}. {decision.reason}"
+                ),
+            )
+        ]
+
         enforce_public_intent(intent)
+        trace.append(
+            TraceStep(
+                stage="policy",
+                name="public_intent_allowlist",
+                status="ok",
+                detail="Requested action is in the closed public intent set.",
+            )
+        )
 
         summary = load_public_evidence(self.summary_path)
         enforce_disclosure_boundary(summary)
+        trace.append(
+            TraceStep(
+                stage="policy",
+                name="aggregate_disclosure_boundary",
+                status="ok",
+                detail="Evidence is aggregate-only and the locked final test remains untouched.",
+            )
+        )
 
         handlers = {
             AgentIntent.PROJECT_STATUS: self._project_status,
@@ -100,13 +177,35 @@ class ResearchCopilot:
             AgentIntent.CALIBRATION_STATUS: self._calibration_status,
             AgentIntent.EXPLAIN_FEATURES: self._explain_features,
             AgentIntent.CHECK_FINAL_TEST_READINESS: self._final_test_readiness,
+            AgentIntent.RELEASE_READINESS: self._release_readiness,
+            AgentIntent.NEXT_EXPERIMENT: self._next_experiment,
         }
+
         response = handlers[intent](summary)
+        trace.append(
+            TraceStep(
+                stage="tool",
+                name=_TOOL_NAMES[intent],
+                status="ok",
+                detail="Deterministic project evidence/tooling produced the response inputs.",
+            )
+        )
+        trace.append(
+            TraceStep(
+                stage="response",
+                name="grounded_response",
+                status=response.status,
+                detail="Response contains explicit evidence sources and preserved research boundaries.",
+            )
+        )
+        response.trace = trace
         response.metadata.update(
             {
-                "planner": self.planner.name,
+                "planner": decision.planner,
+                "planner_confidence": decision.confidence,
                 "public_mode": True,
                 "evidence_only": True,
+                "tool": _TOOL_NAMES[intent],
             }
         )
         return response
@@ -132,7 +231,10 @@ class ResearchCopilot:
                 ),
                 EvidenceItem(
                     label="Development / calibration / locked-test rows",
-                    value=f'{rows["development"]:,} / {rows["calibration"]:,} / {rows["locked_test"]:,}',
+                    value=(
+                        f'{rows["development"]:,} / {rows["calibration"]:,} / '
+                        f'{rows["locked_test"]:,}'
+                    ),
                     source="aggregate portfolio summary",
                 ),
             ],
@@ -193,7 +295,8 @@ class ResearchCopilot:
                 ),
             ],
             warnings=[
-                "Severe-class recall is weak; the selected model should not be presented as a screening tool."
+                "Severe-class recall is weak; the selected model should not be presented "
+                "as a screening tool."
             ],
         )
 
@@ -282,4 +385,63 @@ class ResearchCopilot:
                 "The agent is intentionally incapable of bypassing the final-test unlock policy."
             ],
             metadata={"required_gates": gates},
+        )
+
+    def _release_readiness(self, summary: dict[str, Any]) -> AgentResponse:
+        audit = release_readiness(summary)
+        checks = audit["checks"]
+        passed = sum(bool(check["passed"]) for check in checks)
+        total = len(checks)
+        return AgentResponse(
+            intent=AgentIntent.RELEASE_READINESS,
+            status="ok" if audit["portfolio_release_ready"] else "needs_review",
+            title="Portfolio release readiness",
+            summary=(
+                f"{passed}/{total} public engineering gates pass. "
+                "The portfolio/software release is ready, while confirmatory scientific "
+                "release remains a separate protocol-gated milestone."
+                if audit["portfolio_release_ready"]
+                else f"{passed}/{total} public engineering gates pass; failed checks need review."
+            ),
+            evidence=[
+                EvidenceItem(
+                    label=str(check["name"]),
+                    value="PASS" if check["passed"] else "FAIL",
+                    source=str(check["detail"]),
+                )
+                for check in checks
+            ],
+            warnings=[
+                "Portfolio release readiness does not imply final-test, clinical, or external "
+                "validation readiness."
+            ],
+            metadata={
+                "portfolio_release_ready": audit["portfolio_release_ready"],
+                "confirmatory_release_ready": audit["confirmatory_release_ready"],
+                "next_action": audit["next_action"],
+            },
+        )
+
+    def _next_experiment(self, summary: dict[str, Any]) -> AgentResponse:
+        plan = next_experiment_plan(summary, self.validation_path)
+        return AgentResponse(
+            intent=AgentIntent.NEXT_EXPERIMENT,
+            status="needs_review",
+            title="Next research milestones",
+            summary=(
+                "The next work should progress from geographic validation to frozen confirmatory "
+                "evaluation. The plan below is ordered to avoid leakage and post-hoc tuning."
+            ),
+            evidence=[
+                EvidenceItem(
+                    label=f'Step {item["step"]}: {item["action"]}',
+                    value=item["why"],
+                    source="protocol-safe experiment planner",
+                )
+                for item in plan
+            ],
+            warnings=[
+                "This is an execution plan, not authorization to open the locked final test."
+            ],
+            metadata={"planned_steps": len(plan)},
         )

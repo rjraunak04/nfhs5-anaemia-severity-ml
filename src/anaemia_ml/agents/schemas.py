@@ -1,4 +1,4 @@
-"""Typed contracts for agent requests, evidence, and responses."""
+"""Typed contracts for agent planning, evidence, traces, and responses."""
 
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ class AgentIntent(StrEnum):
     CALIBRATION_STATUS = "calibration_status"
     EXPLAIN_FEATURES = "explain_features"
     CHECK_FINAL_TEST_READINESS = "check_final_test_readiness"
+    RELEASE_READINESS = "release_readiness"
+    NEXT_EXPERIMENT = "next_experiment"
 
 
 class AgentRequest(BaseModel):
@@ -28,6 +30,17 @@ class AgentRequest(BaseModel):
     intent: AgentIntent | None = None
 
 
+class PlanDecision(BaseModel):
+    """Auditable planner decision before any tool is executed."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    intent: AgentIntent
+    planner: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason: str = Field(min_length=1, max_length=300)
+
+
 class EvidenceItem(BaseModel):
     """One auditable fact used by the copilot."""
 
@@ -36,6 +49,17 @@ class EvidenceItem(BaseModel):
     label: str
     value: str
     source: str
+
+
+class TraceStep(BaseModel):
+    """One safe, user-visible step in the agent execution trace."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    stage: Literal["plan", "policy", "tool", "response"]
+    name: str
+    status: Literal["ok", "blocked", "needs_review"]
+    detail: str
 
 
 class AgentResponse(BaseModel):
@@ -49,4 +73,5 @@ class AgentResponse(BaseModel):
     summary: str
     evidence: list[EvidenceItem] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    trace: list[TraceStep] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)

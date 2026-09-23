@@ -226,6 +226,8 @@ with copilot_tab:
             "Why was the selected model chosen?",
             "How did calibration change?",
             "What are the top SHAP features?",
+            "Is the portfolio release ready?",
+            "What experiment should I run next?",
             "Is the locked final test ready?",
             "What is complete in this project?",
         ],
@@ -273,16 +275,42 @@ with copilot_tab:
             for warning in response.warnings:
                 st.warning(warning)
 
+            planner_name = response.metadata.get("planner", "unknown")
+            planner_confidence = response.metadata.get("planner_confidence")
+            if isinstance(planner_confidence, int | float):
+                st.caption(
+                    f"Planner: {planner_name} · confidence: {planner_confidence:.2f} · "
+                    f"tool: {response.metadata.get('tool', 'unknown')}"
+                )
+
+            if response.trace:
+                with st.expander("Agent execution trace"):
+                    trace_frame = pd.DataFrame(
+                        [
+                            {
+                                "Stage": step.stage.title(),
+                                "Component": step.name,
+                                "Status": step.status,
+                                "Detail": step.detail,
+                            }
+                            for step in response.trace
+                        ]
+                    )
+                    st.dataframe(trace_frame, hide_index=True, use_container_width=True)
+
     with st.expander("How this agent works"):
         st.markdown(
             """
-            1. A small intent router maps the question to an approved research action.
-            2. Typed tools read only disclosure-checked aggregate evidence and validation config.
-            3. Governance policies run before a response is returned.
-            4. Every answer carries its evidence source and the final-test boundary cannot be bypassed.
+            1. A hybrid planner first tries high-confidence deterministic routing.
+            2. Only a closed set of approved research intents can reach tools.
+            3. Typed tools read disclosure-checked aggregate evidence and validation config.
+            4. Governance policies run before any evidence-backed response is returned.
+            5. The execution trace exposes planner, policy, tool and response stages.
+            6. Release readiness and next-experiment planning are automated but remain read-only.
 
-            The public copilot does not read respondent-level NFHS/DHS rows and does not provide
-            diagnosis, treatment advice, or autonomous clinical decisions.
+            An optional external LLM can be used only as a fallback planner; it still cannot create
+            new tool permissions. The public copilot does not read respondent-level NFHS/DHS rows
+            and does not provide diagnosis, treatment advice, or autonomous clinical decisions.
             """
         )
 
