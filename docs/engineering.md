@@ -61,3 +61,30 @@ Any change to eligibility, outcome definitions, predictors, splitting, calibrati
 Long-running research runs record dataset/configuration fingerprints and model/output checksums. Incompatible checkpoints must not be reused.
 
 A future confirmatory research release requires the frozen protocol-defined state-held-out analysis, single-use locked-test evaluation, PSU-within-strata bootstrap uncertainty, subgroup/geographic robustness checks and final manuscript reporting.
+
+
+## Agentic research copilot
+
+The copilot is intentionally built on top of the existing ML package instead of duplicating statistical logic inside prompts.
+
+Architecture:
+
+```text
+User question
+    ↓
+Planner
+    ↓
+Closed AgentIntent enum
+    ↓
+Approved deterministic tool
+    ↓
+Disclosure / governance policy
+    ↓
+Structured response + evidence source + warnings
+```
+
+The public deployment uses `RuleBasedPlanner`, which keeps the demo dependency-free and auditable. `CallablePlanner` is the model-agnostic adapter for a future LLM planner. Even when an external model chooses an action, its output must validate against the closed intent enum before any tool can run.
+
+The current approved actions are project status, model comparison, model-selection explanation, calibration status, aggregate SHAP explanation and final-test readiness. The last action is deliberately read-only and always preserves the existing final-test lock.
+
+This separation is intentional: the planner decides **what approved action to request**, deterministic Python tools decide **how project evidence is read**, and governance policies decide **whether the action is allowed**. This makes the agent easier to test, explain in an interview and extend without giving an LLM direct authority over restricted data or scientific release gates.

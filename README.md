@@ -83,6 +83,16 @@ Aggregate SHAP analysis highlighted BMI, age, and education among the leading mo
 - **Deployment:** Dockerized Streamlit app running on Railway
 - **Quality gates:** Ruff, pytest/coverage, notebook cleanliness checks, Docker build
 
+## Agentic Research Copilot
+
+The live dashboard includes a small policy-gated research copilot for questions such as model comparison, selection rationale, calibration, SHAP and final-test readiness.
+
+The copilot follows a deliberately constrained architecture:
+
+`natural-language request → planner → approved tool → governance policy → evidence-backed response`
+
+Its public deployment uses an auditable local planner, while the planner interface can accept an external LLM later without changing the ML tools or safety rules. External planners are restricted to a closed set of approved intents, and the agent cannot unlock the final test or access respondent-level data.
+
 ## Tech stack
 
 **Python · pandas · scikit-learn · LightGBM · Optuna · SHAP · Pydantic · Streamlit · Docker · GitHub Actions · Railway**
@@ -98,7 +108,9 @@ Aggregate SHAP analysis highlighted BMI, age, and education among the leading mo
 ├── docs/                  # protocol, results, model card, engineering notes
 ├── notebooks/             # clean research notebook
 ├── scripts/               # public-repository safety audit
-├── src/anaemia_ml/        # reusable ML package
+├── src/anaemia_ml/
+│   ├── agents/            # typed agent planner, tools and governance
+│   └── ...                # reusable ML pipeline
 ├── tests/                 # unit/integration/leakage tests
 ├── Dockerfile
 └── pyproject.toml

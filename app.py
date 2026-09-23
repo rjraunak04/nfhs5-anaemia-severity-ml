@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from anaemia_ml.agents import AgentRequest, ResearchCopilot
+from anaemia_ml.agents.orchestrator import IntentRoutingError
 from anaemia_ml.dashboard import (
     DashboardDataError,
     load_portfolio_summary,
@@ -17,6 +19,7 @@ from anaemia_ml.dashboard import (
 ROOT = Path(__file__).parent
 DEFAULT_SUMMARY = ROOT / "demo" / "nfhs_development_summary.json"
 SYNTHETIC_SUMMARY = ROOT / "demo" / "portfolio_summary.json"
+VALIDATION_CONFIG = ROOT / "configs" / "validation.yaml"
 
 st.set_page_config(
     page_title="NFHS-5 Anaemia Severity ML",
@@ -92,8 +95,8 @@ metric_columns[1].metric("Selected model", selected["model_name"].replace("_", "
 metric_columns[2].metric("Calibration", calibration["method"].replace("_", " ").title())
 metric_columns[3].metric("Locked test", "Untouched")
 
-overview_tab, calibration_tab, shap_tab, safeguards_tab = st.tabs(
-    ["Overview", "Calibration", "SHAP", "Safeguards"]
+overview_tab, calibration_tab, shap_tab, safeguards_tab, copilot_tab = st.tabs(
+    ["Overview", "Calibration", "SHAP", "Safeguards", "Research Copilot"]
 )
 
 with overview_tab:
@@ -209,7 +212,81 @@ with safeguards_tab:
     for statement in data["responsible_use"]:
         st.markdown(f"- {statement}")
 
+with copilot_tab:
+    st.subheader("Policy-gated Research Copilot")
+    st.caption(
+        "Ask about model comparison, model selection, calibration, SHAP, project status, "
+        "or final-test readiness. The copilot can use only disclosure-checked aggregate evidence."
+    )
+
+    example = st.selectbox(
+        "Example question",
+        [
+            "Compare the development models",
+            "Why was the selected model chosen?",
+            "How did calibration change?",
+            "What are the top SHAP features?",
+            "Is the locked final test ready?",
+            "What is complete in this project?",
+        ],
+        key="copilot_example",
+    )
+    query = st.text_input(
+        "Ask the copilot",
+        value=example,
+        max_chars=500,
+        key="copilot_query",
+    )
+
+    if st.button("Run evidence check", type="primary", key="copilot_run"):
+        copilot = ResearchCopilot(
+            summary_path=DEFAULT_SUMMARY,
+            validation_path=VALIDATION_CONFIG,
+        )
+        try:
+            response = copilot.run(AgentRequest(query=query))
+        except IntentRoutingError as error:
+            st.warning(str(error))
+        else:
+            if response.status == "ok":
+                st.success(response.title)
+            elif response.status == "blocked":
+                st.error(response.title)
+            else:
+                st.warning(response.title)
+
+            st.write(response.summary)
+
+            if response.evidence:
+                evidence_frame = pd.DataFrame(
+                    [
+                        {
+                            "Evidence": item.label,
+                            "Value": item.value,
+                            "Source": item.source,
+                        }
+                        for item in response.evidence
+                    ]
+                )
+                st.dataframe(evidence_frame, hide_index=True, use_container_width=True)
+
+            for warning in response.warnings:
+                st.warning(warning)
+
+    with st.expander("How this agent works"):
+        st.markdown(
+            """
+            1. A small intent router maps the question to an approved research action.
+            2. Typed tools read only disclosure-checked aggregate evidence and validation config.
+            3. Governance policies run before a response is returned.
+            4. Every answer carries its evidence source and the final-test boundary cannot be bypassed.
+
+            The public copilot does not read respondent-level NFHS/DHS rows and does not provide
+            diagnosis, treatment advice, or autonomous clinical decisions.
+            """
+        )
+
 st.divider()
 st.caption(
-    f"Day 2 workflow v{workflow['version']} · run: {data['run_kind']} · locked test: not evaluated"
+    f"Development workflow v{workflow['version']} · run: {data['run_kind']} · locked test: not evaluated"
 )
