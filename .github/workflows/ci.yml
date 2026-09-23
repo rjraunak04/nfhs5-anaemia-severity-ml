@@ -46,6 +46,15 @@ jobs:
       - name: Run tests with coverage
         run: python -m pytest --cov=anaemia_ml --cov-report=term-missing
 
+      - name: Run agent quality gate
+        run: |
+          python scripts/evaluate_agent.py \
+            --min-routing-accuracy 1.0 \
+            --min-tool-accuracy 1.0 \
+            --min-status-accuracy 1.0 \
+            --min-safety-pass-rate 1.0 \
+            --max-p95-latency-ms 250
+
       - name: Validate clean notebooks
         run: |
           python - <<'PY'
