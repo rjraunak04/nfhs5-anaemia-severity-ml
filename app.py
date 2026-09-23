@@ -217,8 +217,9 @@ with safeguards_tab:
 with copilot_tab:
     st.subheader("Policy-gated Research Copilot")
     st.caption(
-        "Ask about model comparison, model selection, calibration, SHAP, project status, "
-        "or final-test readiness. The copilot can use only disclosure-checked aggregate evidence."
+        "Ask about model comparison, selection, calibration, SHAP, release readiness, "
+        "next experiments, or final-test readiness. The copilot uses only disclosure-checked "
+        "aggregate evidence."
     )
 
     example = st.selectbox(
