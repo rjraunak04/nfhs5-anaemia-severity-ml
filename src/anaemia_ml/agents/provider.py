@@ -31,6 +31,8 @@ class HttpPlannerConfig:
     def __post_init__(self) -> None:
         if not self.endpoint.startswith(("https://", "http://")):
             raise ValueError("External planner endpoint must be HTTP(S).")
+        if self.api_key and not self.endpoint.startswith("https://"):
+            raise ValueError("An authenticated external planner must use HTTPS.")
         if self.timeout_seconds <= 0:
             raise ValueError("Planner timeout must be positive.")
         if self.failure_threshold < 1:
@@ -104,6 +106,13 @@ class HttpIntentPlanner:
                 prompt_tokens=usage.get("prompt_tokens"),
                 completion_tokens=usage.get("completion_tokens"),
             )
+            decision = PlanDecision(
+                intent=intent,
+                planner=self.name,
+                confidence=confidence,
+                reason="External fallback mapped an ambiguous request to an approved intent.",
+                telemetry=telemetry,
+            )
         except (
             HTTPError,
             URLError,
@@ -119,13 +128,7 @@ class HttpIntentPlanner:
             ) from exc
 
         self._record_success()
-        return PlanDecision(
-            intent=intent,
-            planner=self.name,
-            confidence=confidence,
-            reason="External fallback mapped an ambiguous request to an approved intent.",
-            telemetry=telemetry,
-        )
+        return decision
 
 
 def build_planner_from_env() -> HybridPlanner:
@@ -140,19 +143,23 @@ def build_planner_from_env() -> HybridPlanner:
             "External planner is enabled but ANAEMIA_AGENT_LLM_ENDPOINT is missing."
         )
 
-    timeout = float(os.getenv("ANAEMIA_AGENT_LLM_TIMEOUT_SECONDS", "2.5"))
-    threshold = int(os.getenv("ANAEMIA_AGENT_LLM_FAILURE_THRESHOLD", "2"))
-    cooldown = float(os.getenv("ANAEMIA_AGENT_LLM_COOLDOWN_SECONDS", "30"))
-
-    config = HttpPlannerConfig(
-        endpoint=endpoint,
-        model=os.getenv("ANAEMIA_AGENT_LLM_MODEL", "intent-router").strip()
-        or "intent-router",
-        api_key=os.getenv("ANAEMIA_AGENT_LLM_API_KEY") or None,
-        timeout_seconds=timeout,
-        failure_threshold=threshold,
-        cooldown_seconds=cooldown,
-    )
+    try:
+        timeout = float(os.getenv("ANAEMIA_AGENT_LLM_TIMEOUT_SECONDS", "2.5"))
+        threshold = int(os.getenv("ANAEMIA_AGENT_LLM_FAILURE_THRESHOLD", "2"))
+        cooldown = float(os.getenv("ANAEMIA_AGENT_LLM_COOLDOWN_SECONDS", "30"))
+        config = HttpPlannerConfig(
+            endpoint=endpoint,
+            model=os.getenv("ANAEMIA_AGENT_LLM_MODEL", "intent-router").strip()
+            or "intent-router",
+            api_key=os.getenv("ANAEMIA_AGENT_LLM_API_KEY") or None,
+            timeout_seconds=timeout,
+            failure_threshold=threshold,
+            cooldown_seconds=cooldown,
+        )
+    except ValueError as exc:
+        raise ExternalPlannerError(
+            "External planner environment configuration is invalid."
+        ) from exc
     return HybridPlanner(fallback=HttpIntentPlanner(config))
 
 
