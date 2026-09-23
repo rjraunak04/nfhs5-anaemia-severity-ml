@@ -3,17 +3,28 @@
 ![CI](https://github.com/rjraunak04/nfhs5-anaemia-severity-ml/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
-![Status](https://img.shields.io/badge/status-live%20development%20release-16a34a)
+![Status](https://img.shields.io/badge/status-portfolio%20ready-16a34a)
 
-**Survey-aware multiclass machine learning for anaemia severity among women aged 15–49 using NFHS-5 India.**
+**Survey-aware multiclass ML with leakage-safe validation, calibrated probabilities, explainability, and a policy-gated research copilot.**
 
-[Live dashboard](https://nfhs5-anaemia-severity-ml-production.up.railway.app) · [Development results](docs/development_results.md) · [Model card](docs/model_card.md) · [Research protocol](docs/research_protocol.md)
+**[Open the live dashboard](https://nfhs5-anaemia-severity-ml-production.up.railway.app)** · [Results](docs/development_results.md) · [Model card](docs/model_card.md) · [Research protocol](docs/research_protocol.md)
 
-## Why I built this
+## At a glance
 
-Most tabular ML examples assume independent rows and random train/test splits. NFHS-5 is different: observations are clustered by survey design, the target is strongly imbalanced, and several variables can leak outcome information.
+| | |
+|---|---|
+| **Problem** | 4-class anaemia severity prediction: None / Mild / Moderate / Severe |
+| **Scale** | 724,115 NFHS-5 records across 36 States/UTs and 707 districts |
+| **Validation** | PSU-disjoint 70/10/20 split + grouped nested cross-validation |
+| **Selected development model** | Random Forest · macro-F1 0.325 · severe recall 0.125 |
+| **Engineering** | 227 tests · CI quality gates · Docker · Railway |
+| **Agent layer** | Policy-gated copilot · 20/20 golden eval cases · external LLM fallback disabled by default |
 
-I built this project to treat those constraints as part of the ML system rather than as an afterthought. The result is a reproducible pipeline with PSU-disjoint validation, fold-local preprocessing, probability calibration, aggregate explainability, automated tests, and a public dashboard that never exposes restricted respondent-level data.
+## Why this project
+
+NFHS-5 is not an ordinary tabular dataset: observations are clustered by survey design, the target is imbalanced, and some variables can leak outcome information.
+
+I built the project around those constraints instead of treating them as cleanup steps. The pipeline keeps PSUs disjoint across partitions, fits preprocessing inside training folds, calibrates probabilities on a separate split, reports aggregate SHAP only, and keeps the final test locked behind an explicit research protocol.
 
 ## Dataset and target
 
@@ -53,7 +64,7 @@ Key design choices:
 - probability calibration is performed on a separate calibration partition;
 - the final test remains locked until the confirmatory research protocol is executed.
 
-## Development results
+## Results — development only
 
 These are **development/calibration estimates, not final-test results**.
 
@@ -83,15 +94,19 @@ Aggregate SHAP analysis highlighted BMI, age, and education among the leading mo
 - **Deployment:** Dockerized Streamlit app running on Railway
 - **Quality gates:** Ruff, pytest/coverage, notebook cleanliness checks, Docker build
 
-## Agentic Research Copilot
+## Research Copilot
 
-The live dashboard includes a policy-gated research copilot for model comparison, selection rationale, calibration, SHAP, release readiness and next-experiment planning.
+The live dashboard also includes a small, read-only agent layer for model comparison, calibration, SHAP, release readiness, and next-experiment planning.
 
-The copilot follows a deliberately constrained architecture:
+`request → deterministic router → optional LLM fallback → approved tool → policy gate → traced response`
 
-`request → deterministic router → optional LLM fallback → approved intent → deterministic tool → policy gate → execution trace → evidence-backed response`
+- known requests stay local and deterministic;
+- every action is restricted to a closed intent set;
+- external fallback is optional and disabled in production by default;
+- the external planner never receives NFHS rows, model evidence, or validation artifacts;
+- 20 version-controlled golden cases are enforced in CI.
 
-Known requests stay local. V4 adds a provider-agnostic external fallback for ambiguous requests with a short timeout, closed-intent validation, an in-process circuit breaker, fail-closed behavior, and non-persistent token/latency telemetry. The external planner receives only the user query and allowed intent names—never NFHS rows, project evidence, model artifacts, or validation data. V3's 20-case golden evaluation suite and CI quality gate remain active.
+The copilot is deliberately separated from the ML pipeline: it can explain and orchestrate approved read-only actions, but it cannot unlock the final test or make clinical decisions.
 
 ## Tech stack
 
