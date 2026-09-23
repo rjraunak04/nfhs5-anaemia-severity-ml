@@ -91,7 +91,7 @@ The V2 copilot follows a deliberately constrained architecture:
 
 `request → hybrid planner → approved intent → deterministic tool → policy gate → execution trace → evidence-backed response`
 
-Known requests use high-confidence local routing; an optional LLM can act only as a fallback planner for ambiguous requests. Planner decisions are validated against a closed intent set, every response exposes a safe execution trace, and automated release checks remain read-only. The agent cannot unlock the final test or access respondent-level data.
+Known requests use high-confidence local routing; an optional LLM can act only as a fallback planner for ambiguous requests. Planner decisions are validated against a closed intent set, every response exposes a safe execution trace, and automated release checks remain read-only. V3 adds a version-controlled 20-case golden evaluation suite, CI quality thresholds, and request-latency observability. The agent cannot unlock the final test or access respondent-level data.
 
 ## Tech stack
 
